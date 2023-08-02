@@ -24,5 +24,5 @@ ollama pull llama2
 
 Install llama2 13b
 ```bash
-ollama pull llama2
+ollama pull llama2:13b
 ```
