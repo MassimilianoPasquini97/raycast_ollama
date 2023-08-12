@@ -32,7 +32,7 @@
     },
     {
       "name": "ollamaChatModel",
-      "description": "Select model used for perform 'Chat with Ollama'",
+      "description": "Select model used for perform 'Chat With Ollama'",
       "type": "textfield",
       "required": true,
       "title": "Model - Chat whit Ollama",
@@ -169,7 +169,7 @@
     },
     {
       "name": "ollama-chat",
-      "title": "Chat with Ollama",
+      "title": "Chat With Ollama",
       "subtitle": "Ollama",
       "description": "Ask ollama any question",
       "mode": "view"

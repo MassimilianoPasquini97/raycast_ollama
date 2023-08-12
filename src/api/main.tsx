@@ -236,7 +236,7 @@ export function ListView(body: OllamaApiGenerateRequestBody): JSX.Element {
   }
 
   async function SaveAnswerList(): Promise<void> {
-    if (answerList) {
+    if (answerList && answerList[answerList.length - 1][2].context) {
       await LocalStorage.setItem("answerList", JSON.stringify(answerList));
     }
   }
