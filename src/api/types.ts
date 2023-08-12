@@ -3,6 +3,8 @@ export interface OllamaApiGenerateRequestBody {
   prompt: string;
   system?: string;
   template?: string;
+  context?: number[];
+  options?: OllamaApiGenerateOptionsRequestBody;
 }
 
 export interface OllamaApiGenerateOptionsRequestBody {

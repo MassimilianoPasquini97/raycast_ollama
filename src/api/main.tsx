@@ -1,8 +1,13 @@
-import { OllamaApiEmbeddingsResponse, OllamaApiGenerateRequestBody, OllamaApiGenerateResponseMetadata } from "./types";
+import {
+  OllamaApiEmbeddingsResponse,
+  OllamaApiGenerateRequestBody,
+  OllamaApiGenerateResponseDone,
+  OllamaApiGenerateResponseMetadata,
+} from "./types";
 import { ErrorOllamaCustomModel, ErrorOllamaModelNotInstalled, ErrorRaycastApiNoTextSelected } from "./errors";
 import { OllamaApiEmbeddings, OllamaApiGenerate } from "./ollama";
 import * as React from "react";
-import { Action, ActionPanel, Detail, Icon, Toast, showToast } from "@raycast/api";
+import { Action, ActionPanel, Detail, Icon, List, Toast, showToast } from "@raycast/api";
 import { getSelectedText, getPreferenceValues } from "@raycast/api";
 
 const preferences = getPreferenceValues();
@@ -15,7 +20,7 @@ const preferences = getPreferenceValues();
  * @param {string} embeddingsModel - Model used for embeddings. By default use same model for inference.
  * @returns {JSX.Element} Raycast Detail View.
  */
-export default function ResultView(
+export function ResultView(
   body: OllamaApiGenerateRequestBody,
   selectText: boolean,
   embeddings = false,
@@ -152,5 +157,122 @@ export default function ResultView(
         )
       }
     />
+  );
+}
+
+/**
+ * Return JSX element with generated text on list view.
+ * @param {OllamaApiGenerateRequestBody} body - Ollama Generate Body Request.
+ * @returns {JSX.Element} Raycast List View.
+ */
+export function ListView(body: OllamaApiGenerateRequestBody): JSX.Element {
+  const [loading, setLoading]: [boolean, React.Dispatch<React.SetStateAction<boolean>>] = React.useState(false);
+  const [query, setQuery]: [string, React.Dispatch<React.SetStateAction<string>>] = React.useState("");
+  const [answerList, setAnswerList]: [
+    [string, string, OllamaApiGenerateResponseDone][] | undefined,
+    React.Dispatch<React.SetStateAction<[string, string, OllamaApiGenerateResponseDone][] | undefined>>
+  ] = React.useState();
+
+  async function HandleError(err: Error) {
+    if (err instanceof ErrorOllamaModelNotInstalled) {
+      await showToast({ style: Toast.Style.Failure, title: err.message, message: err.suggest });
+      setLoading(false);
+      return;
+    } else if (err instanceof ErrorOllamaCustomModel) {
+      await showToast({
+        style: Toast.Style.Failure,
+        title: err.message,
+        message: `Model: ${err.model}, File: ${err.file}`,
+      });
+      setLoading(false);
+      return;
+    } else {
+      await showToast({ style: Toast.Style.Failure, title: err.message });
+      setLoading(false);
+    }
+  }
+
+  async function Inference(): Promise<void> {
+    await showToast({ style: Toast.Style.Animated, title: "🧠 Performing Inference." });
+    setLoading(true);
+    body.prompt = query;
+    if (answerList) body.context = answerList[answerList.length - 1][2].context;
+    setQuery("");
+    OllamaApiGenerate(body)
+      .then(async (emiter) => {
+        setAnswerList((prevState) => {
+          if (prevState === undefined) return [[query, "", {} as OllamaApiGenerateResponseDone]];
+          return [...prevState, [query, "", {} as OllamaApiGenerateResponseDone]];
+        });
+
+        emiter.on("data", (data) => {
+          setAnswerList((prevState) => {
+            if (prevState) {
+              prevState[prevState.length - 1][1] += data;
+              return [...prevState];
+            }
+          });
+        });
+
+        emiter.on("done", async (data) => {
+          await showToast({ style: Toast.Style.Success, title: "🧠 Inference Done." });
+          setAnswerList((prevState) => {
+            if (prevState) {
+              prevState[prevState.length - 1][2] = data;
+              return [...prevState];
+            }
+          });
+          setLoading(false);
+        });
+      })
+      .catch(async (err) => {
+        await HandleError(err);
+      });
+  }
+
+  function ActionOllama(item?: [string, string, OllamaApiGenerateResponseDone]): JSX.Element {
+    if (item) {
+      return (
+        <ActionPanel>
+          <ActionPanel.Section title="Ollama">
+            <Action icon={Icon.Star} onAction={Inference} title="Get Answer" />
+            <Action.CopyToClipboard content={item[1]} />
+          </ActionPanel.Section>
+        </ActionPanel>
+      );
+    }
+    return (
+      <ActionPanel>
+        <ActionPanel.Section title="Ollama">
+          <Action icon={Icon.Star} onAction={Inference} title="Get Answer" />
+        </ActionPanel.Section>
+      </ActionPanel>
+    );
+  }
+
+  return (
+    <List
+      isLoading={loading}
+      navigationTitle="Ask..."
+      searchBarPlaceholder="Ask..."
+      searchText={query}
+      onSearchTextChange={setQuery}
+      actions={!loading && ActionOllama()}
+      isShowingDetail={answerList != undefined}
+    >
+      {(() => {
+        if (answerList) {
+          return answerList?.map((item, index) => (
+            <List.Item
+              title={item[0]}
+              key={index}
+              actions={!loading && ActionOllama(item)}
+              detail={<List.Item.Detail markdown={`${item[1]}`} />}
+            />
+          ));
+        }
+        return <List.EmptyView icon={Icon.Message} title="Start a Conversation with Ollama" />;
+      })()}
+    </List>
   );
 }

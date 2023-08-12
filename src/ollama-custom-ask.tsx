@@ -1,5 +1,5 @@
 import { OllamaApiGenerateRequestBody, RaycastArgumentsOllamaAskCustom } from "./api/types";
-import ResultView from "./api/main";
+import { ResultView } from "./api/main";
 import { getPreferenceValues } from "@raycast/api";
 
 const preferences = getPreferenceValues();

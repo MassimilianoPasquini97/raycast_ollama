@@ -31,6 +31,14 @@
       "default": "llama2:latest"
     },
     {
+      "name": "ollamaChatModel",
+      "description": "Select model used for perform 'Chat with Ollama'",
+      "type": "textfield",
+      "required": true,
+      "title": "Model - Chat whit Ollama",
+      "default": "llama2:latest"
+    },
+    {
       "name": "ollamaAskCustomPromptModel",
       "description": "Select model used for perform 'Ask Ollama With Custom Prompt'",
       "type": "textfield",
@@ -158,6 +166,13 @@
           "required": true
         }
       ]
+    },
+    {
+      "name": "ollama-chat",
+      "title": "Chat with Ollama",
+      "subtitle": "Ollama",
+      "description": "Ask ollama any question",
+      "mode": "view"
     },
     {
       "name": "ollama-casual",
