@@ -7,7 +7,7 @@ import {
 import { ErrorOllamaCustomModel, ErrorOllamaModelNotInstalled, ErrorRaycastApiNoTextSelected } from "./errors";
 import { OllamaApiEmbeddings, OllamaApiGenerate } from "./ollama";
 import * as React from "react";
-import { Action, ActionPanel, Detail, Icon, List, Toast, showToast } from "@raycast/api";
+import { Action, ActionPanel, Detail, Icon, List, LocalStorage, Toast, showToast } from "@raycast/api";
 import { getSelectedText, getPreferenceValues } from "@raycast/api";
 
 const preferences = getPreferenceValues();
@@ -168,6 +168,8 @@ export function ResultView(
 export function ListView(body: OllamaApiGenerateRequestBody): JSX.Element {
   const [loading, setLoading]: [boolean, React.Dispatch<React.SetStateAction<boolean>>] = React.useState(false);
   const [query, setQuery]: [string, React.Dispatch<React.SetStateAction<string>>] = React.useState("");
+  const [selectedAnswer, setSelectedAnswer]: [string, React.Dispatch<React.SetStateAction<string>>] =
+    React.useState("0");
   const [answerList, setAnswerList]: [
     [string, string, OllamaApiGenerateResponseDone][] | undefined,
     React.Dispatch<React.SetStateAction<[string, string, OllamaApiGenerateResponseDone][] | undefined>>
@@ -201,7 +203,10 @@ export function ListView(body: OllamaApiGenerateRequestBody): JSX.Element {
     OllamaApiGenerate(body)
       .then(async (emiter) => {
         setAnswerList((prevState) => {
-          if (prevState === undefined) return [[query, "", {} as OllamaApiGenerateResponseDone]];
+          if (prevState === undefined) {
+            return [[query, "", {} as OllamaApiGenerateResponseDone]];
+          }
+          setSelectedAnswer(prevState.length.toString());
           return [...prevState, [query, "", {} as OllamaApiGenerateResponseDone]];
         });
 
@@ -230,6 +235,23 @@ export function ListView(body: OllamaApiGenerateRequestBody): JSX.Element {
       });
   }
 
+  async function SaveAnswerList(): Promise<void> {
+    if (answerList) {
+      await LocalStorage.setItem("answerList", JSON.stringify(answerList));
+    }
+  }
+
+  async function GetAnswerList(): Promise<void> {
+    await LocalStorage.getItem("answerList").then((data) => {
+      if (data) setAnswerList(JSON.parse(data as string));
+    });
+  }
+
+  async function ClearAnswerList(): Promise<void> {
+    await LocalStorage.removeItem("answerList");
+    setAnswerList(undefined);
+  }
+
   function ActionOllama(item?: [string, string, OllamaApiGenerateResponseDone]): JSX.Element {
     if (item) {
       return (
@@ -237,6 +259,12 @@ export function ListView(body: OllamaApiGenerateRequestBody): JSX.Element {
           <ActionPanel.Section title="Ollama">
             <Action icon={Icon.Star} onAction={Inference} title="Get Answer" />
             <Action.CopyToClipboard content={item[1]} />
+            <Action
+              title="Clear Conversation"
+              onAction={ClearAnswerList}
+              shortcut={{ modifiers: ["cmd"], key: "r" }}
+              icon={Icon.Trash}
+            />
           </ActionPanel.Section>
         </ActionPanel>
       );
@@ -250,6 +278,14 @@ export function ListView(body: OllamaApiGenerateRequestBody): JSX.Element {
     );
   }
 
+  React.useEffect(() => {
+    SaveAnswerList();
+  }, [answerList]);
+
+  React.useEffect(() => {
+    GetAnswerList();
+  }, []);
+
   return (
     <List
       isLoading={loading}
@@ -257,6 +293,7 @@ export function ListView(body: OllamaApiGenerateRequestBody): JSX.Element {
       searchBarPlaceholder="Ask..."
       searchText={query}
       onSearchTextChange={setQuery}
+      selectedItemId={selectedAnswer}
       actions={!loading && ActionOllama()}
       isShowingDetail={answerList != undefined}
     >
@@ -264,8 +301,10 @@ export function ListView(body: OllamaApiGenerateRequestBody): JSX.Element {
         if (answerList) {
           return answerList?.map((item, index) => (
             <List.Item
+              icon={Icon.Message}
               title={item[0]}
               key={index}
+              id={index.toString()}
               actions={!loading && ActionOllama(item)}
               detail={<List.Item.Detail markdown={`${item[1]}`} />}
             />
