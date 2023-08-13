@@ -7,7 +7,7 @@ import {
 import { ErrorOllamaCustomModel, ErrorOllamaModelNotInstalled, ErrorRaycastApiNoTextSelected } from "./errors";
 import { OllamaApiEmbeddings, OllamaApiGenerate } from "./ollama";
 import * as React from "react";
-import { Action, ActionPanel, Detail, Icon, List, LocalStorage, Toast, showToast } from "@raycast/api";
+import { Action, ActionPanel, Detail, Form, Icon, List, LocalStorage, Toast, showToast } from "@raycast/api";
 import { getSelectedText, getPreferenceValues } from "@raycast/api";
 
 const preferences = getPreferenceValues();
@@ -168,12 +168,20 @@ export function ResultView(
 export function ListView(body: OllamaApiGenerateRequestBody): JSX.Element {
   const [loading, setLoading]: [boolean, React.Dispatch<React.SetStateAction<boolean>>] = React.useState(false);
   const [query, setQuery]: [string, React.Dispatch<React.SetStateAction<string>>] = React.useState("");
+  const [chatName, setChatName]: [string, React.Dispatch<React.SetStateAction<string>>] = React.useState("Current");
   const [selectedAnswer, setSelectedAnswer]: [string, React.Dispatch<React.SetStateAction<string>>] =
     React.useState("0");
-  const [answerList, setAnswerList]: [
-    [string, string, OllamaApiGenerateResponseDone][] | undefined,
-    React.Dispatch<React.SetStateAction<[string, string, OllamaApiGenerateResponseDone][] | undefined>>
-  ] = React.useState();
+  const [answerListHistory, setAnswerListHistory]: [
+    Map<string, [string, string, OllamaApiGenerateResponseDone][] | undefined>,
+    React.Dispatch<React.SetStateAction<Map<string, [string, string, OllamaApiGenerateResponseDone][] | undefined>>>
+  ] = React.useState(new Map());
+  const [showForm, setShowForm]: [boolean, React.Dispatch<React.SetStateAction<boolean>>] = React.useState(false);
+  const [clipboardQuestion, setClipboardQuestion]: [string, React.Dispatch<React.SetStateAction<string>>] =
+    React.useState("");
+  const [clipboardAnswer, setClipboardAnswer]: [string, React.Dispatch<React.SetStateAction<string>>] =
+    React.useState("");
+  const [clipboardConversation, setClipboardConversation]: [string, React.Dispatch<React.SetStateAction<string>>] =
+    React.useState("");
 
   async function HandleError(err: Error) {
     if (err instanceof ErrorOllamaModelNotInstalled) {
@@ -198,34 +206,47 @@ export function ListView(body: OllamaApiGenerateRequestBody): JSX.Element {
     await showToast({ style: Toast.Style.Animated, title: "🧠 Performing Inference." });
     setLoading(true);
     body.prompt = query;
-    if (answerList) body.context = answerList[answerList.length - 1][2].context;
+    if (answerListHistory.has(chatName)) {
+      const l = answerListHistory.get(chatName)?.length;
+      if (l && l > 0) {
+        body.context = answerListHistory.get(chatName)?.[l - 1][2].context;
+      }
+    }
     setQuery("");
     OllamaApiGenerate(body)
       .then(async (emiter) => {
-        setAnswerList((prevState) => {
-          if (prevState === undefined) {
-            return [[query, "", {} as OllamaApiGenerateResponseDone]];
+        setAnswerListHistory((prevState) => {
+          let prevData = prevState.get(chatName);
+          if (prevData?.length === undefined) {
+            prevData = [[query, "", {} as OllamaApiGenerateResponseDone]];
+          } else {
+            prevData.push([query, "", {} as OllamaApiGenerateResponseDone]);
           }
-          setSelectedAnswer(prevState.length.toString());
-          return [...prevState, [query, "", {} as OllamaApiGenerateResponseDone]];
+          prevState.set(chatName, prevData);
+          setSelectedAnswer((prevData.length - 1).toString());
+          return new Map(prevState);
         });
 
         emiter.on("data", (data) => {
-          setAnswerList((prevState) => {
-            if (prevState) {
-              prevState[prevState.length - 1][1] += data;
-              return [...prevState];
+          setAnswerListHistory((prevState) => {
+            const prevData = prevState.get(chatName);
+            if (prevData) {
+              if (prevData?.length) prevData[prevData.length - 1][1] += data;
+              prevState.set(chatName, prevData);
             }
+            return new Map(prevState);
           });
         });
 
         emiter.on("done", async (data) => {
           await showToast({ style: Toast.Style.Success, title: "🧠 Inference Done." });
-          setAnswerList((prevState) => {
-            if (prevState) {
-              prevState[prevState.length - 1][2] = data;
-              return [...prevState];
+          setAnswerListHistory((prevState) => {
+            const prevData = prevState.get(chatName);
+            if (prevData) {
+              if (prevData?.length) prevData[prevData.length - 1][2] = data;
+              prevState.set(chatName, prevData);
             }
+            return new Map(prevState);
           });
           setLoading(false);
         });
@@ -235,56 +256,152 @@ export function ListView(body: OllamaApiGenerateRequestBody): JSX.Element {
       });
   }
 
-  async function SaveAnswerList(): Promise<void> {
-    if (answerList && answerList[answerList.length - 1][2].context) {
-      await LocalStorage.setItem("answerList", JSON.stringify(answerList));
+  async function SaveAnswerListHistory(): Promise<void> {
+    const currentData = answerListHistory.get(chatName);
+    if (currentData && currentData[currentData.length - 1][2].context) {
+      await LocalStorage.setItem("answerListHistory", JSON.stringify([...answerListHistory]));
     }
   }
 
   async function GetAnswerList(): Promise<void> {
-    await LocalStorage.getItem("answerList").then((data) => {
-      if (data) setAnswerList(JSON.parse(data as string));
+    await LocalStorage.getItem("chatName").then((data) => {
+      if (data) setChatName(data as string);
+    });
+    await LocalStorage.getItem("answerListHistory").then((data) => {
+      if (data) {
+        const dataMap: Map<string, [string, string, OllamaApiGenerateResponseDone][]> = new Map(
+          JSON.parse(data as string)
+        );
+        setAnswerListHistory(dataMap);
+      }
     });
   }
 
   async function ClearAnswerList(): Promise<void> {
-    await LocalStorage.removeItem("answerList");
-    setAnswerList(undefined);
+    setAnswerListHistory((prevState) => {
+      if (chatName === "Current") {
+        prevState.set("Current", undefined);
+      } else {
+        prevState.delete(chatName);
+      }
+      return new Map(prevState);
+    });
+    if (answerListHistory.size === 0) {
+      await LocalStorage.removeItem("answerListHistory");
+    }
+    setChatName("Current");
+    await LocalStorage.setItem("chatName", "Current");
+    await LocalStorage.setItem("answerListHistory", JSON.stringify([...answerListHistory]));
+  }
+
+  async function SaveChatToHistory(): Promise<void> {
+    setAnswerListHistory((prevState) => {
+      const chat = prevState.get("Current");
+      if (chat) {
+        prevState.set(chatName, chat);
+        prevState.set("Current", undefined);
+      }
+      return new Map(prevState);
+    });
+    setChatName("Current");
+    await LocalStorage.setItem("chatName", "Current");
+    await LocalStorage.setItem("answerListHistory", JSON.stringify([...answerListHistory]));
+    setShowForm(false);
+  }
+
+  async function ChangeChat(name: string): Promise<void> {
+    setChatName(name);
+    setClipboardConversationByName(name);
+    await LocalStorage.setItem("chatName", name);
+  }
+
+  function showFormView(): void {
+    setShowForm(true);
+  }
+
+  function setClipboardConversationByName(name: string) {
+    let clipboard = "";
+    const data = answerListHistory.get(name);
+    if (data) {
+      data.map((value) => (clipboard += `Question:\n${value[0]}\n\nAnswer:${value[1]}\n\n`));
+    }
+    setClipboardConversation(clipboard);
+  }
+
+  function onSelectionChange(id: string | null): void {
+    const data = answerListHistory.get(chatName);
+    if (data && id) {
+      setClipboardQuestion(data[parseInt(id)][0]);
+      setClipboardAnswer(data[parseInt(id)][1]);
+    }
   }
 
   function ActionOllama(item?: [string, string, OllamaApiGenerateResponseDone]): JSX.Element {
-    if (item) {
-      return (
-        <ActionPanel>
-          <ActionPanel.Section title="Ollama">
-            <Action icon={Icon.Star} onAction={Inference} title="Get Answer" />
-            <Action.CopyToClipboard content={item[1]} />
-            <Action
-              title="Clear Conversation"
-              onAction={ClearAnswerList}
-              shortcut={{ modifiers: ["cmd"], key: "r" }}
-              icon={Icon.Trash}
-            />
-          </ActionPanel.Section>
-        </ActionPanel>
-      );
-    }
     return (
       <ActionPanel>
         <ActionPanel.Section title="Ollama">
           <Action icon={Icon.Star} onAction={Inference} title="Get Answer" />
+          <Action.CopyToClipboard
+            title="Copy Question"
+            content={clipboardQuestion}
+            shortcut={{ modifiers: ["cmd"], key: "b" }}
+          />
+          <Action.CopyToClipboard
+            title="Copy Answer"
+            content={clipboardAnswer}
+            shortcut={{ modifiers: ["cmd"], key: "c" }}
+          />
+          <Action.CopyToClipboard title="Copy Conversation" content={clipboardConversation} />
+          {(() => {
+            if (chatName === "Current") {
+              return (
+                <Action
+                  title="Save Chat"
+                  onAction={showFormView}
+                  shortcut={{ modifiers: ["cmd"], key: "s" }}
+                  icon={Icon.SaveDocument}
+                />
+              );
+            }
+          })()}
+          <Action
+            title="Clear Conversation"
+            onAction={ClearAnswerList}
+            shortcut={{ modifiers: ["cmd"], key: "r" }}
+            icon={Icon.Trash}
+          />
         </ActionPanel.Section>
       </ActionPanel>
     );
   }
 
   React.useEffect(() => {
-    SaveAnswerList();
-  }, [answerList]);
+    SaveAnswerListHistory();
+    setClipboardConversationByName(chatName);
+  }, [answerListHistory]);
 
   React.useEffect(() => {
     GetAnswerList();
   }, []);
+
+  if (showForm)
+    return (
+      <Form
+        actions={
+          <ActionPanel>
+            <Action.SubmitForm onSubmit={SaveChatToHistory} title="Save Conversation" />
+          </ActionPanel>
+        }
+      >
+        <Form.TextField
+          id="chatName"
+          title="Chat Name"
+          placeholder="Enter Chat Name"
+          value={chatName}
+          onChange={setChatName}
+        />
+      </Form>
+    );
 
   return (
     <List
@@ -294,21 +411,35 @@ export function ListView(body: OllamaApiGenerateRequestBody): JSX.Element {
       searchText={query}
       onSearchTextChange={setQuery}
       selectedItemId={selectedAnswer}
+      onSelectionChange={onSelectionChange}
       actions={!loading && ActionOllama()}
-      isShowingDetail={answerList != undefined}
+      isShowingDetail={
+        answerListHistory.get(chatName)?.length != undefined && (answerListHistory.get(chatName)?.length as number) > 0
+      }
+      searchBarAccessory={
+        <List.Dropdown tooltip="Chat History" value={chatName} onChange={ChangeChat}>
+          {!loading &&
+            Array.from(answerListHistory.keys()).map((key) => <List.Dropdown.Item key={key} title={key} value={key} />)}
+        </List.Dropdown>
+      }
     >
       {(() => {
-        if (answerList) {
-          return answerList?.map((item, index) => (
-            <List.Item
-              icon={Icon.Message}
-              title={item[0]}
-              key={index}
-              id={index.toString()}
-              actions={!loading && ActionOllama(item)}
-              detail={<List.Item.Detail markdown={`${item[1]}`} />}
-            />
-          ));
+        if (
+          answerListHistory.get(chatName)?.length != undefined &&
+          (answerListHistory.get(chatName)?.length as number) > 0
+        ) {
+          return answerListHistory
+            .get(chatName)
+            ?.map((item, index) => (
+              <List.Item
+                icon={Icon.Message}
+                title={item[0]}
+                key={index}
+                id={index.toString()}
+                actions={!loading && ActionOllama(item)}
+                detail={<List.Item.Detail markdown={`${item[1]}`} />}
+              />
+            ));
         }
         return <List.EmptyView icon={Icon.Message} title="Start a Conversation with Ollama" />;
       })()}
