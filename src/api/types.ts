@@ -5,7 +5,16 @@ export interface OllamaApiTagsResponse {
 export interface OllamaApiTagsResponseModel {
   name: string;
   modified_at: string;
-  size: string;
+  size: number;
+  download?: number;
+}
+
+export interface OllamaApiPullResponse {
+  status: string;
+  digest?: string;
+  total?: number;
+  completed?: number;
+  error?: string;
 }
 
 export interface OllamaApiGenerateRequestBody {
@@ -73,12 +82,6 @@ export interface OllamaApiGenerateResponseDone {
 
 export interface OllamaApiEmbeddingsResponse {
   embedding: number[];
-}
-
-export interface OllamaApiTagsResponseModel {
-  name: string;
-  modified_at: string;
-  size: string;
 }
 
 export interface OllamaApiGenerateResponse {

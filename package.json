@@ -243,6 +243,13 @@
       "mode": "view"
     },
     {
+      "name": "ollama-models",
+      "title": "Manage Models",
+      "subtitle": "Ollama",
+      "description": "Manage installed models",
+      "mode": "view"
+    },
+    {
       "name": "ollama-custom-create",
       "title": "Create Custom Command",
       "subtitle": "Ollama",
