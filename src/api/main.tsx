@@ -176,10 +176,6 @@ export function ListView(body: OllamaApiGenerateRequestBody): JSX.Element {
     React.Dispatch<React.SetStateAction<Map<string, [string, string, OllamaApiGenerateResponseDone][] | undefined>>>
   ] = React.useState(new Map());
   const [showForm, setShowForm]: [boolean, React.Dispatch<React.SetStateAction<boolean>>] = React.useState(false);
-  const [clipboardQuestion, setClipboardQuestion]: [string, React.Dispatch<React.SetStateAction<string>>] =
-    React.useState("");
-  const [clipboardAnswer, setClipboardAnswer]: [string, React.Dispatch<React.SetStateAction<string>>] =
-    React.useState("");
   const [clipboardConversation, setClipboardConversation]: [string, React.Dispatch<React.SetStateAction<string>>] =
     React.useState("");
 
@@ -328,48 +324,41 @@ export function ListView(body: OllamaApiGenerateRequestBody): JSX.Element {
     setClipboardConversation(clipboard);
   }
 
-  function onSelectionChange(id: string | null): void {
-    const data = answerListHistory.get(chatName);
-    if (data && id) {
-      setClipboardQuestion(data[parseInt(id)][0]);
-      setClipboardAnswer(data[parseInt(id)][1]);
-    }
-  }
-
   function ActionOllama(item?: [string, string, OllamaApiGenerateResponseDone]): JSX.Element {
     return (
       <ActionPanel>
         <ActionPanel.Section title="Ollama">
-          <Action icon={Icon.SpeechBubbleActive} onAction={Inference} title="Get Answer" />
-          <Action.CopyToClipboard
+          {query && <Action
+            icon={Icon.SpeechBubbleActive}
+            onAction={Inference}
+            title="Get Answer"
+          />}
+          {item?.[0] && <Action.CopyToClipboard
             title="Copy Question"
-            content={clipboardQuestion}
+            content={item[0] as string}
             shortcut={{ modifiers: ["cmd"], key: "b" }}
-          />
-          <Action.CopyToClipboard
+          />}
+          {item?.[1] && <Action.CopyToClipboard
             title="Copy Answer"
-            content={clipboardAnswer}
+            content={item[1] as string}
             shortcut={{ modifiers: ["cmd"], key: "c" }}
-          />
-          <Action.CopyToClipboard title="Copy Conversation" content={clipboardConversation} />
-          {(() => {
-            if (chatName === "Current") {
-              return (
-                <Action
-                  title="Archive Conversation"
-                  onAction={showFormView}
-                  shortcut={{ modifiers: ["cmd"], key: "s" }}
-                  icon={Icon.Box}
-                />
-              );
-            }
-          })()}
-          <Action
+          />}
+          {item && <Action.CopyToClipboard
+            title="Copy Conversation"
+            content={clipboardConversation}
+          />}
+          {chatName === "Current" && item && <Action
+            title="Archive Conversation"
+            onAction={showFormView}
+            shortcut={{ modifiers: ["cmd"], key: "s" }}
+            icon={Icon.Box}
+          />}
+          {item && <Action
             title="Clear Conversation"
             onAction={ClearAnswerList}
             shortcut={{ modifiers: ["cmd"], key: "r" }}
             icon={Icon.Trash}
-          />
+          />}
         </ActionPanel.Section>
       </ActionPanel>
     );
@@ -411,7 +400,6 @@ export function ListView(body: OllamaApiGenerateRequestBody): JSX.Element {
       searchText={query}
       onSearchTextChange={setQuery}
       selectedItemId={selectedAnswer}
-      onSelectionChange={onSelectionChange}
       actions={!loading && ActionOllama()}
       isShowingDetail={
         answerListHistory.get(chatName)?.length != undefined && (answerListHistory.get(chatName)?.length as number) > 0
