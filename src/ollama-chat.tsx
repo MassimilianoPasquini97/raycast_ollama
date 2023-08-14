@@ -8,5 +8,6 @@ export default function Command(): JSX.Element {
   const body = {
     model: preferences.ollamaChatModel,
   } as OllamaApiGenerateRequestBody;
+
   return ListView(body);
 }

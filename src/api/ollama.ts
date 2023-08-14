@@ -3,6 +3,7 @@ import {
   OllamaApiGenerateResponseDone,
   OllamaApiGenerateRequestBody,
   OllamaApiEmbeddingsResponse,
+  OllamaApiTagsResponse,
 } from "./types";
 import {
   ErrorOllamaCustomModel,
@@ -12,6 +13,30 @@ import {
 } from "./errors";
 import fetch from "node-fetch";
 import { EventEmitter } from "stream";
+
+/**
+ * Get installed model.
+ * @returns {Promise<string[]>} [true, model] if model is installed, [false, model] if not.
+ */
+export async function OllamaApiTags(): Promise<string[]> {
+  const url = "http://127.0.0.1:11434/api/tags";
+
+  const data = await fetch(url)
+    .then((response) => response.json())
+    .then((output): OllamaApiTagsResponse => {
+      return output as OllamaApiTagsResponse;
+    })
+    .catch((err) => {
+      console.error(err);
+      throw ErrorOllamaNotInstalledOrRunning;
+    });
+
+  const models: string[] = [] as string[];
+  data.models.forEach((row) => {
+    models.push(row.name);
+  });
+  return models;
+}
 
 /**
  * Perform text generation with the selected model.

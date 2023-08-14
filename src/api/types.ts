@@ -1,3 +1,13 @@
+export interface OllamaApiTagsResponse {
+  models: OllamaApiTagsResponseModel[];
+}
+
+export interface OllamaApiTagsResponseModel {
+  name: string;
+  modified_at: string;
+  size: string;
+}
+
 export interface OllamaApiGenerateRequestBody {
   model: string;
   prompt: string;
@@ -109,8 +119,17 @@ export interface RaycastArgumentsOllamaAsk {
 export interface RaycastArgumentsOllamaAskCustom {
   fallbackText?: string;
   arguments: {
-    prompt: string;
+    model: string;
     query: string;
+  };
+  launchType: string;
+  launchContext?: string;
+}
+
+export interface RaycastArgumentsOllamaChatCustom {
+  fallbackText?: string;
+  arguments: {
+    model: string;
   };
   launchType: string;
   launchContext?: string;
@@ -119,8 +138,7 @@ export interface RaycastArgumentsOllamaAskCustom {
 export interface RaycastArgumentsOllamaCommandCustom {
   fallbackText?: string;
   arguments: {
-    prompt: string;
-    query: string;
+    model: string;
   };
   launchType: string;
   launchContext?: string;

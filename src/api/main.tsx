@@ -340,7 +340,7 @@ export function ListView(body: OllamaApiGenerateRequestBody): JSX.Element {
     return (
       <ActionPanel>
         <ActionPanel.Section title="Ollama">
-          <Action icon={Icon.Star} onAction={Inference} title="Get Answer" />
+          <Action icon={Icon.SpeechBubbleActive} onAction={Inference} title="Get Answer" />
           <Action.CopyToClipboard
             title="Copy Question"
             content={clipboardQuestion}
@@ -356,10 +356,10 @@ export function ListView(body: OllamaApiGenerateRequestBody): JSX.Element {
             if (chatName === "Current") {
               return (
                 <Action
-                  title="Save Chat"
+                  title="Archive Conversation"
                   onAction={showFormView}
                   shortcut={{ modifiers: ["cmd"], key: "s" }}
-                  icon={Icon.SaveDocument}
+                  icon={Icon.Box}
                 />
               );
             }
