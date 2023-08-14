@@ -1,6 +1,6 @@
 import { OllamaApiTags } from "./api/ollama";
 import * as React from "react";
-import { Action, ActionPanel, Form } from "@raycast/api";
+import { Action, ActionPanel, Form, showToast, Toast } from "@raycast/api";
 
 const DeepLink = new Map([
   ["🤖 Chat", "raycast://extensions/massimiliano_pasquini/raycast-ollama/ollama-custom-chat"],
@@ -12,9 +12,15 @@ export default function Command(): JSX.Element {
     React.useState([] as string[]);
   const [CommandType, setCommandType]: [string, React.Dispatch<React.SetStateAction<string>>] = React.useState("");
   const [Model, setModel]: [string, React.Dispatch<React.SetStateAction<string>>] = React.useState("");
+  const [CreateQuicklinkEnabled, setCreateQuicklinkEnabled]: [boolean, React.Dispatch<React.SetStateAction<boolean>>] = React.useState(false)
 
   async function fetchAvailableModels(): Promise<void> {
-    await OllamaApiTags().then((data) => setAvailableModels([...data]));
+    await OllamaApiTags()
+      .then((data) => {
+        setAvailableModels([...data]);
+        setCreateQuicklinkEnabled(true);
+      })
+      .catch(async (err) => await showToast({ style: Toast.Style.Failure, title: err.message }));
   }
 
   function onDropdownChangeCommandType(text: string): void {
@@ -34,11 +40,11 @@ export default function Command(): JSX.Element {
       navigationTitle="Create a Custom Ollama Command"
       actions={
         <ActionPanel>
-          <Action.CreateQuicklink
+          {CreateQuicklinkEnabled && <Action.CreateQuicklink
             quicklink={{
               link: `${DeepLink.get(CommandType)}?arguments=${encodeURIComponent(JSON.stringify({ model: Model }))}`,
             }}
-          />
+          />}
         </ActionPanel>
       }
     >
