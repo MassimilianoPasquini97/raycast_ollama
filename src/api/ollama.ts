@@ -16,9 +16,9 @@ import { EventEmitter } from "stream";
 
 /**
  * Get installed model.
- * @returns {Promise<string[]>} [true, model] if model is installed, [false, model] if not.
+ * @returns {Promise<OllamaApiTagsResponse>} List of installed models.
  */
-export async function OllamaApiTags(): Promise<string[]> {
+export async function OllamaApiTags(): Promise<OllamaApiTagsResponse> {
   const url = "http://127.0.0.1:11434/api/tags";
 
   const data = await fetch(url)
@@ -31,11 +31,7 @@ export async function OllamaApiTags(): Promise<string[]> {
       throw ErrorOllamaNotInstalledOrRunning;
     });
 
-  const models: string[] = [] as string[];
-  data.models.forEach((row) => {
-    models.push(row.name);
-  });
-  return models;
+  return data;
 }
 
 /**

@@ -12,12 +12,17 @@ export default function Command(): JSX.Element {
     React.useState([] as string[]);
   const [CommandType, setCommandType]: [string, React.Dispatch<React.SetStateAction<string>>] = React.useState("");
   const [Model, setModel]: [string, React.Dispatch<React.SetStateAction<string>>] = React.useState("");
-  const [CreateQuicklinkEnabled, setCreateQuicklinkEnabled]: [boolean, React.Dispatch<React.SetStateAction<boolean>>] = React.useState(false)
+  const [CreateQuicklinkEnabled, setCreateQuicklinkEnabled]: [boolean, React.Dispatch<React.SetStateAction<boolean>>] =
+    React.useState(false);
 
   async function fetchAvailableModels(): Promise<void> {
     await OllamaApiTags()
       .then((data) => {
-        setAvailableModels([...data]);
+        const models: string[] = [] as string[];
+        data.models.forEach((row) => {
+          models.push(row.name);
+        });
+        setAvailableModels([...models]);
         setCreateQuicklinkEnabled(true);
       })
       .catch(async (err) => await showToast({ style: Toast.Style.Failure, title: err.message }));
@@ -40,11 +45,13 @@ export default function Command(): JSX.Element {
       navigationTitle="Create a Custom Ollama Command"
       actions={
         <ActionPanel>
-          {CreateQuicklinkEnabled && <Action.CreateQuicklink
-            quicklink={{
-              link: `${DeepLink.get(CommandType)}?arguments=${encodeURIComponent(JSON.stringify({ model: Model }))}`,
-            }}
-          />}
+          {CreateQuicklinkEnabled && (
+            <Action.CreateQuicklink
+              quicklink={{
+                link: `${DeepLink.get(CommandType)}?arguments=${encodeURIComponent(JSON.stringify({ model: Model }))}`,
+              }}
+            />
+          )}
         </ActionPanel>
       }
     >
