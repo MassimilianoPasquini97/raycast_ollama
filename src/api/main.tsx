@@ -328,37 +328,38 @@ export function ListView(body: OllamaApiGenerateRequestBody): JSX.Element {
     return (
       <ActionPanel>
         <ActionPanel.Section title="Ollama">
-          {query && <Action
-            icon={Icon.SpeechBubbleActive}
-            onAction={Inference}
-            title="Get Answer"
-          />}
-          {item?.[0] && <Action.CopyToClipboard
-            title="Copy Question"
-            content={item[0] as string}
-            shortcut={{ modifiers: ["cmd"], key: "b" }}
-          />}
-          {item?.[1] && <Action.CopyToClipboard
-            title="Copy Answer"
-            content={item[1] as string}
-            shortcut={{ modifiers: ["cmd"], key: "c" }}
-          />}
-          {item && <Action.CopyToClipboard
-            title="Copy Conversation"
-            content={clipboardConversation}
-          />}
-          {chatName === "Current" && item && <Action
-            title="Archive Conversation"
-            onAction={showFormView}
-            shortcut={{ modifiers: ["cmd"], key: "s" }}
-            icon={Icon.Box}
-          />}
-          {item && <Action
-            title="Clear Conversation"
-            onAction={ClearAnswerList}
-            shortcut={{ modifiers: ["cmd"], key: "r" }}
-            icon={Icon.Trash}
-          />}
+          {query && <Action title="Get Answer" icon={Icon.SpeechBubbleActive} onAction={Inference} />}
+          {item?.[0] && (
+            <Action.CopyToClipboard
+              title="Copy Question"
+              content={item[0] as string}
+              shortcut={{ modifiers: ["cmd"], key: "b" }}
+            />
+          )}
+          {item?.[1] && (
+            <Action.CopyToClipboard
+              title="Copy Answer"
+              content={item[1] as string}
+              shortcut={{ modifiers: ["cmd"], key: "c" }}
+            />
+          )}
+          {item && <Action.CopyToClipboard title="Copy Conversation" content={clipboardConversation} />}
+          {chatName === "Current" && item && (
+            <Action
+              title="Archive Conversation"
+              icon={Icon.Box}
+              onAction={showFormView}
+              shortcut={{ modifiers: ["cmd"], key: "s" }}
+            />
+          )}
+          {item && (
+            <Action
+              title="Clear Conversation"
+              icon={Icon.Trash}
+              onAction={ClearAnswerList}
+              shortcut={{ modifiers: ["cmd"], key: "r" }}
+            />
+          )}
         </ActionPanel.Section>
       </ActionPanel>
     );

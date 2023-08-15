@@ -140,7 +140,7 @@
       "name": "ollama-chat",
       "title": "Chat With Ollama",
       "subtitle": "Ollama",
-      "description": "Ask ollama any question",
+      "description": "Chat with Ollama",
       "mode": "view"
     },
     {
