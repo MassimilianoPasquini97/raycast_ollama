@@ -10,10 +10,41 @@ import {
   ErrorOllamaCustomModel,
   ErrorOllamaModelNotInstalled,
   ErrorOllamaNotInstalledOrRunning,
+  ErrorOllamaModelRegistryUnreachable,
   MessageOllamaModelNotInstalled,
 } from "./errors";
 import fetch from "node-fetch";
 import { EventEmitter } from "stream";
+
+/**
+ * Get available models on ollama registry.
+ * @returns {Promise<string[]>} List of models.
+ */
+export async function OllamaAvailableModelsOnRegistry(): Promise<string[]> {
+  const url =
+    "https://gist.githubusercontent.com/mchiang0610/b959e3c189ec1e948e4f6a1f737a1fc5/raw/9d36bbb45f53488d6582a0337475b52d827169fa/ollama.txt";
+
+  const data = await fetch(url)
+    .then((response) => {
+      if (response.ok) {
+        return response.text();
+      }
+      throw Error(response.status.toString());
+    })
+    .then((output): string[] => {
+      const a: string[] = [];
+      output.split("\n").forEach((line) => {
+        a.push(line);
+      });
+      return a;
+    })
+    .catch((err) => {
+      console.error(err);
+      throw ErrorOllamaModelRegistryUnreachable;
+    });
+
+  return data;
+}
 
 /**
  * Get installed model.
