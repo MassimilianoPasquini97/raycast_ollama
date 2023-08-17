@@ -64,12 +64,13 @@ export default function Command(): JSX.Element {
       e.on("downloading", (data: number) => {
         const prevDownload = Models?.models[index as number].download?.toFixed(2);
         const currentDownload = data.toFixed(2);
-        if (currentDownload !== prevDownload) setModels((prevState) => {
-          console.debug(prevDownload, currentDownload)
-          const newState = prevState;
-          if (newState?.models[index as number]) newState.models[index as number].download = Number(currentDownload);
-          return { ...prevState, ...(newState as OllamaApiTagsResponse) };
-        });
+        if (currentDownload !== prevDownload)
+          setModels((prevState) => {
+            console.debug(prevDownload, currentDownload);
+            const newState = prevState;
+            if (newState?.models[index as number]) newState.models[index as number].download = Number(currentDownload);
+            return { ...prevState, ...(newState as OllamaApiTagsResponse) };
+          });
       });
       e.on("done", async () => {
         await fetchAvailableModels();
