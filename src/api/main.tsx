@@ -140,6 +140,12 @@ export function ResultView(
       actions={
         <ActionPanel>
           <Action.SubmitForm title="Submit" onSubmit={(values) => setLocalStorageModels(values.modelGenerate)} />
+          <Action.Open
+            title="Manage Models"
+            icon={Icon.Box}
+            target="raycast://extensions/massimiliano_pasquini/raycast-ollama/ollama-models"
+            shortcut={{ modifiers: ["cmd"], key: "m" }}
+          />
         </ActionPanel>
       }
     >
@@ -486,6 +492,12 @@ export function ListView(): JSX.Element {
               onSubmit={(values) => setLocalStorageModels(values.modelGenerate, values.modelEmbedding)}
             />
           )}
+          <Action.Open
+            title="Manage Models"
+            icon={Icon.Box}
+            target="raycast://extensions/massimiliano_pasquini/raycast-ollama/ollama-models"
+            shortcut={{ modifiers: ["cmd"], key: "m" }}
+          />
         </ActionPanel>
       }
     >
