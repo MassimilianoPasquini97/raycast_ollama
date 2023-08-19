@@ -15,6 +15,14 @@
   },
   "preferences": [
     {
+      "name": "ollamaHost",
+      "description": "Ollama API route",
+      "type": "textfield",
+      "required": false,
+      "title": "Ollama Host",
+      "default": "http://127.0.0.1:11434/"
+    },
+    {
       "name": "ollamaShowMetadata",
       "description": "Show inference statistics",
       "type": "checkbox",
@@ -148,7 +156,6 @@
   "dependencies": {
     "@raycast/api": "^1.55.2",
     "@raycast/utils": "^1.9.0",
-    "langchain": "^0.0.129",
     "node-fetch": "^3.3.2"
   },
   "devDependencies": {
