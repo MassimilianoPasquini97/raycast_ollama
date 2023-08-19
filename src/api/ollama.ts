@@ -22,7 +22,7 @@ import { EventEmitter } from "stream";
  */
 export async function OllamaAvailableModelsOnRegistry(): Promise<string[]> {
   const url =
-    "https://gist.githubusercontent.com/mchiang0610/b959e3c189ec1e948e4f6a1f737a1fc5/raw/9d36bbb45f53488d6582a0337475b52d827169fa/ollama.txt";
+    "https://gist.githubusercontent.com/mchiang0610/942e93fef378e36e6d44edf24756c723/raw/aad73c72a1a8ed3dd24421856a58afa7af56dc4d/ollama_lib_081623";
 
   const data = await fetch(url)
     .then((response) => {

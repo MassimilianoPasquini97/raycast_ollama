@@ -66,7 +66,6 @@ export default function Command(): JSX.Element {
         const currentDownload = data.toFixed(2);
         if (currentDownload !== prevDownload)
           setModels((prevState) => {
-            console.debug(prevDownload, currentDownload);
             const newState = prevState;
             if (newState?.models[index as number]) newState.models[index as number].download = Number(currentDownload);
             return { ...prevState, ...(newState as OllamaApiTagsResponse) };

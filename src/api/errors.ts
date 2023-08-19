@@ -21,6 +21,6 @@ export class ErrorOllamaModelNotInstalled extends Error {
   constructor(message: string, model?: string) {
     super(message);
     this.model = model;
-    this.suggest = `Install ${model} with 'Manage Models' command`;
+    this.suggest = `Select a different model or install throw 'Manage Models' command`;
   }
 }
