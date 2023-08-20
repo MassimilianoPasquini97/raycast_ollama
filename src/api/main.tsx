@@ -184,8 +184,18 @@ export function ResultView(
             <Detail.Metadata.Label title="Model" text={answerMetadata.model} />
             <Detail.Metadata.Separator />
             <Detail.Metadata.Label
+              title="Generation Speed"
+              text={`${(answerMetadata.eval_count / (answerMetadata.eval_duration / 1e9)).toFixed(2)} token/s`}
+            />
+            <Detail.Metadata.Label
               title="Total Inference Duration"
               text={`${(answerMetadata.total_duration / 1e9).toFixed(2)}s`}
+            />
+            <Detail.Metadata.Label title="Load Duration" text={`${(answerMetadata.load_duration / 1e9).toFixed(2)}s`} />
+            <Detail.Metadata.Label title="Sample Duration" text={`${answerMetadata.sample_count} sample`} />
+            <Detail.Metadata.Label
+              title="Sample Duration"
+              text={`${(answerMetadata.sample_duration / 1e9).toFixed(2)}s`}
             />
             <Detail.Metadata.Label title="Prompt Eval Count" text={`${answerMetadata.prompt_eval_count}`} />
             <Detail.Metadata.Label
@@ -549,18 +559,56 @@ export function ListView(): JSX.Element {
           answerListHistory.get(chatName)?.length != undefined &&
           (answerListHistory.get(chatName)?.length as number) > 0
         ) {
-          return answerListHistory
-            .get(chatName)
-            ?.map((item, index) => (
-              <List.Item
-                icon={Icon.Message}
-                title={item[0]}
-                key={index}
-                id={index.toString()}
-                actions={!loading && ActionOllama(item)}
-                detail={<List.Item.Detail markdown={`${item[1]}`} />}
-              />
-            ));
+          return answerListHistory.get(chatName)?.map((item, index) => (
+            <List.Item
+              icon={Icon.Message}
+              title={item[0]}
+              key={index}
+              id={index.toString()}
+              actions={!loading && ActionOllama(item)}
+              detail={
+                <List.Item.Detail
+                  markdown={`${item[1]}`}
+                  metadata={
+                    preferences.ollamaShowMetadata &&
+                    item[2].context && (
+                      <Detail.Metadata>
+                        <Detail.Metadata.Label title="Model" text={item[2].model} />
+                        <Detail.Metadata.Separator />
+                        <Detail.Metadata.Label
+                          title="Generation Speed"
+                          text={`${(item[2].eval_count / (item[2].eval_duration / 1e9)).toFixed(2)} token/s`}
+                        />
+                        <Detail.Metadata.Label
+                          title="Total Inference Duration"
+                          text={`${(item[2].total_duration / 1e9).toFixed(2)}s`}
+                        />
+                        <Detail.Metadata.Label
+                          title="Load Duration"
+                          text={`${(item[2].load_duration / 1e9).toFixed(2)}s`}
+                        />
+                        <Detail.Metadata.Label title="Sample Duration" text={`${item[2].sample_count} sample`} />
+                        <Detail.Metadata.Label
+                          title="Sample Duration"
+                          text={`${(item[2].sample_duration / 1e9).toFixed(2)}s`}
+                        />
+                        <Detail.Metadata.Label title="Prompt Eval Count" text={`${item[2].prompt_eval_count}`} />
+                        <Detail.Metadata.Label
+                          title="Prompt Eval Duration"
+                          text={`${(item[2].prompt_eval_duration / 1e9).toFixed(2)}s`}
+                        />
+                        <Detail.Metadata.Label title="Eval Count" text={`${item[2].eval_count}`} />
+                        <Detail.Metadata.Label
+                          title="Eval Duration"
+                          text={`${(item[2].eval_duration / 1e9).toFixed(2)}s`}
+                        />
+                      </Detail.Metadata>
+                    )
+                  }
+                />
+              }
+            />
+          ));
         }
         return <List.EmptyView icon={Icon.Message} title="Start a Conversation with Ollama" />;
       })()}
