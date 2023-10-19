@@ -7,7 +7,7 @@ import { ErrorOllamaCustomModel, ErrorOllamaModelNotInstalled, ErrorRaycastApiNo
 import { OllamaApiGenerate, OllamaApiTags } from "./ollama";
 import * as React from "react";
 import { Action, ActionPanel, Detail, Form, Icon, List, LocalStorage, Toast, showToast } from "@raycast/api";
-import { getSelectedText, getPreferenceValues } from "@raycast/api";
+import { getSelectedText, Clipboard, getPreferenceValues } from "@raycast/api";
 
 const preferences = getPreferenceValues();
 
@@ -89,15 +89,44 @@ export function ResultView(
   }
   React.useEffect(() => {
     if (modelGenerate)
-      getSelectedText()
-        .then((text) => {
-          query.current = text;
-          Inference();
-        })
-        .catch(async (err) => {
-          await showToast({ style: Toast.Style.Failure, title: ErrorRaycastApiNoTextSelected.message });
-          console.error(err);
-        });
+      switch (preferences.ollamaResultViewInput) {
+        case "SelectedText":
+          getSelectedText()
+            .then((text) => {
+              query.current = text;
+              Inference();
+            })
+            .catch(() => {
+              Clipboard.readText()
+                .then((text) => {
+                  if (text === undefined) throw "Empty Clipboard";
+                  query.current = text;
+                  Inference();
+                })
+                .catch(async () => {
+                  await showToast({ style: Toast.Style.Failure, title: ErrorRaycastApiNoTextSelected.message });
+                });
+            });
+          break;
+        case "Clipboard":
+          Clipboard.readText()
+            .then((text) => {
+              if (text === undefined) throw "Empty Clipboard";
+              query.current = text;
+              Inference();
+            })
+            .catch(() => {
+              getSelectedText()
+                .then((text) => {
+                  query.current = text;
+                  Inference();
+                })
+                .catch(async () => {
+                  await showToast({ style: Toast.Style.Failure, title: ErrorRaycastApiNoTextSelected.message });
+                });
+            });
+          break;
+      }
   }, [modelGenerate]);
   React.useEffect(() => {
     if (model) {
@@ -483,10 +512,7 @@ export function ListView(): JSX.Element {
       actions={
         <ActionPanel>
           {installedModels.length > 0 && (
-            <Action.SubmitForm
-              title="Submit"
-              onSubmit={(values) => setLocalStorageModels(values.modelGenerate)}
-            />
+            <Action.SubmitForm title="Submit" onSubmit={(values) => setLocalStorageModels(values.modelGenerate)} />
           )}
           <Action.Open
             title="Manage Models"

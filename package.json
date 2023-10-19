@@ -23,6 +23,24 @@
       "default": "http://127.0.0.1:11434/"
     },
     {
+      "name": "ollamaResultViewInput",
+      "description": "Choose preferred input source",
+      "type": "dropdown",
+      "required": false,
+      "title": "Input Source",
+      "data": [
+        {
+          "title": "Selected Text",
+          "value": "SelectedText"
+        },
+        {
+          "title": "Clipboard",
+          "value": "Clipboard"
+        }
+      ],
+      "default": "SelectedText"
+    },
+    {
       "name": "ollamaShowMetadata",
       "description": "Show inference statistics",
       "type": "checkbox",
