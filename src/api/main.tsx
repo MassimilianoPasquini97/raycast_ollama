@@ -3,7 +3,13 @@ import {
   OllamaApiGenerateResponseDone,
   OllamaApiGenerateResponseMetadata,
 } from "./types";
-import { ErrorOllamaCustomModel, ErrorOllamaModelNotInstalled, ErrorRaycastApiNoTextSelected } from "./errors";
+import {
+  ErrorOllamaCustomModel,
+  ErrorOllamaModelNotInstalled,
+  ErrorRaycastApiNoTextSelectedOrCopied,
+  ErrorRaycastApiNoTextSelected,
+  ErrorRaycastApiNoTextCopied,
+} from "./errors";
 import { OllamaApiGenerate, OllamaApiTags } from "./ollama";
 import * as React from "react";
 import { Action, ActionPanel, Detail, Form, Icon, List, LocalStorage, Toast, showToast } from "@raycast/api";
@@ -96,16 +102,23 @@ export function ResultView(
               query.current = text;
               Inference();
             })
-            .catch(() => {
-              Clipboard.readText()
-                .then((text) => {
-                  if (text === undefined) throw "Empty Clipboard";
-                  query.current = text;
-                  Inference();
-                })
-                .catch(async () => {
-                  await showToast({ style: Toast.Style.Failure, title: ErrorRaycastApiNoTextSelected.message });
-                });
+            .catch(async () => {
+              if (preferences.ollamaResultViewInputFallback) {
+                Clipboard.readText()
+                  .then((text) => {
+                    if (text === undefined) throw "Empty Clipboard";
+                    query.current = text;
+                    Inference();
+                  })
+                  .catch(async () => {
+                    await showToast({
+                      style: Toast.Style.Failure,
+                      title: ErrorRaycastApiNoTextSelectedOrCopied.message,
+                    });
+                  });
+              } else {
+                await showToast({ style: Toast.Style.Failure, title: ErrorRaycastApiNoTextSelected.message });
+              }
             });
           break;
         case "Clipboard":
@@ -115,15 +128,22 @@ export function ResultView(
               query.current = text;
               Inference();
             })
-            .catch(() => {
-              getSelectedText()
-                .then((text) => {
-                  query.current = text;
-                  Inference();
-                })
-                .catch(async () => {
-                  await showToast({ style: Toast.Style.Failure, title: ErrorRaycastApiNoTextSelected.message });
-                });
+            .catch(async () => {
+              if (preferences.ollamaResultViewInputFallback) {
+                getSelectedText()
+                  .then((text) => {
+                    query.current = text;
+                    Inference();
+                  })
+                  .catch(async () => {
+                    await showToast({
+                      style: Toast.Style.Failure,
+                      title: ErrorRaycastApiNoTextSelectedOrCopied.message,
+                    });
+                  });
+              } else {
+                await showToast({ style: Toast.Style.Failure, title: ErrorRaycastApiNoTextCopied.message });
+              }
             });
           break;
       }

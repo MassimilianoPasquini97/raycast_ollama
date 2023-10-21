@@ -41,6 +41,14 @@
       "default": "SelectedText"
     },
     {
+      "name": "ollamaResultViewInputFallback",
+      "description": "If there isn't text on main input source enable this option permit to fallback to other input source",
+      "type": "checkbox",
+      "required": false,
+      "title": "Enable Input Source Fallback",
+      "label": "Check for enable input fallback"
+    },
+    {
       "name": "ollamaShowMetadata",
       "description": "Show inference statistics",
       "type": "checkbox",
