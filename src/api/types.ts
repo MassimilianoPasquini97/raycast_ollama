@@ -102,10 +102,6 @@ export interface OllamaPrompt {
   tagEnd: string;
 }
 
-export interface OllamaError {
-  error: string;
-}
-
 export interface RaycastArgumentsOllamaAsk {
   fallbackText?: string;
   arguments: {

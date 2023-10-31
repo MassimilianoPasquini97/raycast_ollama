@@ -1,4 +1,4 @@
-import { OllamaApiGenerateRequestBody, OllamaApiGenerateResponse, OllamaError } from "./types";
+import { OllamaApiGenerateRequestBody, OllamaApiGenerateResponse } from "./types";
 import {
   ErrorOllamaCustomModel,
   ErrorOllamaModelNotInstalled,
@@ -74,11 +74,6 @@ export function ResultView(
         emiter.on("done", async (data) => {
           await showToast({ style: Toast.Style.Success, title: "🧠 Inference Done." });
           setAnswerMetadata(data);
-          setLoading(false);
-        });
-
-        emiter.on("error", async (data: OllamaError) => {
-          await showToast({ style: Toast.Style.Failure, title: "⚠️" + data.error });
           setLoading(false);
         });
       })
@@ -362,11 +357,6 @@ export function ListView(): JSX.Element {
             }
             return new Map(prevState);
           });
-          setLoading(false);
-        });
-
-        emiter.on("error", async (data: OllamaError) => {
-          await showToast({ style: Toast.Style.Failure, title: "⚠️ " + data.error });
           setLoading(false);
         });
       })
