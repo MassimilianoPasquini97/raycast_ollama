@@ -1,10 +1,10 @@
 import {
-  OllamaApiGenerateResponseUndone,
-  OllamaApiGenerateResponseDone,
+  OllamaApiGenerateResponse,
   OllamaApiGenerateRequestBody,
   OllamaApiEmbeddingsResponse,
   OllamaApiTagsResponse,
   OllamaApiPullResponse,
+  OllamaError,
 } from "./types";
 import {
   ErrorOllamaCustomModel,
@@ -172,7 +172,7 @@ export async function OllamaApiPull(model: string): Promise<EventEmitter> {
 /**
  * Perform text generation with the selected model.
  * @param {OllamaApiGenerateRequestBody} body - Ollama Generate Body Request.
- * @returns {Promise<EventEmitter>} Response from the Ollama API with an EventEmitter with two event: `data` where all generated text is passed on `string` format and `done` when inference is finished returning a `OllamaApiGenerateResponseDone` object contains all metadata of inference.
+ * @returns {Promise<EventEmitter>} Response from the Ollama API with an EventEmitter with three event: `data` where all generated text is passed on `string` format, `done` when inference is finished returning a `OllamaApiGenerateResponse` object contains all metadata of inference and `error` when ollama api throw error.
  */
 export async function OllamaApiGenerate(body: OllamaApiGenerateRequestBody): Promise<EventEmitter> {
   const host = parseOllamaHostUrl();
@@ -203,12 +203,19 @@ export async function OllamaApiGenerate(body: OllamaApiGenerateRequestBody): Pro
         body?.on("data", (chunk) => {
           if (chunk !== undefined) {
             const buffer = Buffer.from(chunk);
-            const json: OllamaApiGenerateResponseUndone = JSON.parse(buffer.toString());
-            if (json.done) {
-              const lastJSON: OllamaApiGenerateResponseDone = JSON.parse(buffer.toString());
-              e.emit("done", lastJSON);
+            try {
+              const json: OllamaApiGenerateResponse = JSON.parse(buffer.toString());
+              switch (json.done) {
+                case false:
+                  e.emit("data", json.response);
+                  break;
+                case true:
+                  e.emit("done", json);
+              }
+            } catch {
+              const json: OllamaError = JSON.parse(buffer.toString());
+              e.emit("error", json);
             }
-            if (json.response !== undefined) e.emit("data", json.response);
           }
         });
 
