@@ -144,7 +144,7 @@ export default function Command(): JSX.Element {
           </ActionPanel>
         }
       >
-        {ModelsOnRegistry.length || ModelsOnRegistry.length === 0 ? (
+        {ModelsOnRegistry.length === undefined || ModelsOnRegistry.length === 0 ? (
           <Form.TextField id="Model" title="Model Name" placeholder="Model Name" />
         ) : null}
         {ModelsOnRegistry.length && ModelsOnRegistry.length > 0 ? (
