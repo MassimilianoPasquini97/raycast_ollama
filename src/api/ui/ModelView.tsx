@@ -1,5 +1,10 @@
-import { OllamaApiTags, OllamaApiDelete, OllamaApiPull } from "../ollama";
-import { OllamaApiTagsResponse, OllamaApiTagsResponseModel } from "../types";
+import { OllamaApiTags, OllamaApiDelete, OllamaApiPull, OllamaApiShow, OllamaApiShowParseModelfile } from "../ollama";
+import {
+  OllamaApiTagsExtended,
+  OllamaApiTagsModelExtended,
+  OllamaApiTagsResponse,
+  OllamaApiTagsResponseModel,
+} from "../types";
 import * as React from "react";
 import { Form, Action, ActionPanel, Icon, List, showToast, Toast } from "@raycast/api";
 import { getProgressIcon } from "@raycast/utils";
@@ -11,8 +16,8 @@ import { getProgressIcon } from "@raycast/utils";
 export function ModelView(): JSX.Element {
   const ModelsOnRegistry: string[] = [] as string[];
   const [Models, setModels]: [
-    OllamaApiTagsResponse | undefined,
-    React.Dispatch<React.SetStateAction<OllamaApiTagsResponse | undefined>>
+    OllamaApiTagsExtended | undefined,
+    React.Dispatch<React.SetStateAction<OllamaApiTagsExtended | undefined>>
   ] = React.useState();
   const [isLoading, setIsLoading]: [boolean, React.Dispatch<React.SetStateAction<boolean>>] = React.useState(false);
   const [showDetail, setShowDetail]: [boolean, React.Dispatch<React.SetStateAction<boolean>>] = React.useState(false);
@@ -20,12 +25,27 @@ export function ModelView(): JSX.Element {
 
   async function fetchAvailableModels(): Promise<void> {
     setIsLoading(true);
-    await OllamaApiTags()
-      .then((data) => {
-        setModels(data);
-        setIsLoading(false);
+    const models = await OllamaApiTags()
+      .then(async (models): Promise<OllamaApiTagsExtended> => {
+        const info = models.models.map(async (model): Promise<OllamaApiTagsModelExtended> => {
+          const show = await OllamaApiShow(model.name)
+            .then((data) => OllamaApiShowParseModelfile(data))
+            .catch(() => undefined);
+          return {
+            name: model.name,
+            size: model.size,
+            modified_at: model.modified_at,
+            download: model.download,
+            modelfile: show,
+          } as OllamaApiTagsModelExtended;
+        });
+        return { models: await Promise.all(info) } as OllamaApiTagsExtended;
       })
-      .catch(async (err) => await showToast({ style: Toast.Style.Failure, title: err.message }));
+      .catch(async (err) => {
+        await showToast({ style: Toast.Style.Failure, title: err.message });
+      });
+    if (models) setModels(models);
+    setIsLoading(false);
   }
 
   function deleteModel(name: string): void {
@@ -75,7 +95,7 @@ export function ModelView(): JSX.Element {
     }
   }
 
-  function ModelDetail(item: OllamaApiTagsResponseModel): JSX.Element {
+  function ModelDetail(item: OllamaApiTagsModelExtended): JSX.Element {
     return (
       <List.Item.Detail
         metadata={
@@ -87,6 +107,103 @@ export function ModelView(): JSX.Element {
               text={`${(item.size / 1e9).toPrecision(2).toString()} GB`}
             />
             <List.Item.Detail.Metadata.Label title="Model Modified At" icon={Icon.Calendar} text={item.modified_at} />
+            {item.modelfile ? <List.Item.Detail.Metadata.Separator /> : null}
+            {item.modelfile ? (
+              <List.Item.Detail.Metadata.Label title="FROM" icon={Icon.Box} text={item.modelfile.from} />
+            ) : null}
+            {item.modelfile ? (
+              <List.Item.Detail.Metadata.Label
+                title="PARAMETER mirostat"
+                text={String(item.modelfile.parameter.mirostat)}
+              />
+            ) : null}
+            {item.modelfile ? (
+              <List.Item.Detail.Metadata.Label
+                title="PARAMETER mirostat_eta"
+                text={String(item.modelfile.parameter.mirostat_eta)}
+              />
+            ) : null}
+            {item.modelfile ? (
+              <List.Item.Detail.Metadata.Label
+                title="PARAMETER mirostat_tau"
+                text={String(item.modelfile.parameter.mirostat_tau)}
+              />
+            ) : null}
+            {item.modelfile ? (
+              <List.Item.Detail.Metadata.Label
+                title="PARAMETER num_ctx"
+                text={String(item.modelfile.parameter.num_ctx)}
+              />
+            ) : null}
+            {item.modelfile ? (
+              <List.Item.Detail.Metadata.Label
+                title="PARAMETER num_gpu"
+                text={String(item.modelfile.parameter.num_gpu)}
+              />
+            ) : null}
+            {item.modelfile?.parameter.num_thread ? (
+              <List.Item.Detail.Metadata.Label
+                title="PARAMETER num_thread"
+                text={String(item.modelfile.parameter.num_thread)}
+              />
+            ) : null}
+            {item.modelfile ? (
+              <List.Item.Detail.Metadata.Label
+                title="PARAMETER repeat_last_n"
+                text={String(item.modelfile.parameter.repeat_last_n)}
+              />
+            ) : null}
+            {item.modelfile ? (
+              <List.Item.Detail.Metadata.Label
+                title="PARAMETER repeat_penalty"
+                text={String(item.modelfile.parameter.repeat_penalty)}
+              />
+            ) : null}
+            {item.modelfile ? (
+              <List.Item.Detail.Metadata.Label
+                title="PARAMETER temperature"
+                text={String(item.modelfile.parameter.temperature)}
+              />
+            ) : null}
+            {item.modelfile ? (
+              <List.Item.Detail.Metadata.Label title="PARAMETER seed" text={String(item.modelfile.parameter.seed)} />
+            ) : null}
+            {item.modelfile
+              ? item.modelfile.parameter.stop.map((item, index) => (
+                  <List.Item.Detail.Metadata.Label
+                    key={"PARAMETER stop " + index}
+                    title="PARAMETER stop"
+                    text={String(item)}
+                  />
+                ))
+              : null}
+            {item.modelfile ? (
+              <List.Item.Detail.Metadata.Label title="PARAMETER tfs_z" text={String(item.modelfile.parameter.tfs_z)} />
+            ) : null}
+            {item.modelfile ? (
+              <List.Item.Detail.Metadata.Label
+                title="PARAMETER num_predict"
+                text={String(item.modelfile.parameter.num_predict)}
+              />
+            ) : null}
+            {item.modelfile ? (
+              <List.Item.Detail.Metadata.Label title="PARAMETER top_k" text={String(item.modelfile.parameter.top_k)} />
+            ) : null}
+            {item.modelfile ? (
+              <List.Item.Detail.Metadata.Label title="PARAMETER top_p" text={String(item.modelfile.parameter.top_p)} />
+            ) : null}
+            {item.modelfile ? (
+              <List.Item.Detail.Metadata.Label title="TEMPLATE" text={String(item.modelfile.template)} />
+            ) : null}
+            {item.modelfile?.system ? (
+              <List.Item.Detail.Metadata.Label title="SYSTEM" text={String(item.modelfile.system)} />
+            ) : null}
+            {item.modelfile?.adapter ? (
+              <List.Item.Detail.Metadata.Label title="SYSTEM_VERSION" text={String(item.modelfile.adapter)} />
+            ) : null}
+            {item.modelfile?.license ? (
+              <List.Item.Detail.Metadata.Label title="SYSTEM_VERSION" text={String(item.modelfile.license)} />
+            ) : null}
           </List.Item.Detail.Metadata>
         }
       />

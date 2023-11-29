@@ -1,16 +1,21 @@
-import { OllamaApiGenerateRequestBody, OllamaApiGenerateResponse } from "../types";
+import { ChainPreferences, Chains, OllamaApiGenerateResponse, OllamaApiShowModelfile } from "../types";
 import {
   ErrorOllamaCustomModel,
   ErrorOllamaModelNotInstalled,
   ErrorRaycastModelNotConfiguredOnLocalStorage,
 } from "../errors";
-import { OllamaApiGenerate } from "../ollama";
+import { OllamaApiShow, OllamaApiShowParseModelfile } from "../ollama";
 import { SetModelView } from "./SetModelView";
 import * as React from "react";
 import { Action, ActionPanel, Detail, Icon, List, LocalStorage, Toast, showToast } from "@raycast/api";
 import { usePromise } from "@raycast/utils";
 import { getPreferenceValues } from "@raycast/api";
 import { SaveChatView } from "./SaveChatView";
+import { ChainView } from "./ChainView";
+import { DocumentLoaderFileView } from "./DocumentLoaderFileView";
+import { GetDocument, GetTags, LLMChain, loadQARefineChain, loadQAStuffChain } from "../langchain";
+import { Document } from "langchain/document";
+import { EventEmitter } from "stream";
 
 const preferences = getPreferenceValues();
 
@@ -20,10 +25,16 @@ const preferences = getPreferenceValues();
  */
 export function ChatView(): JSX.Element {
   const { data: ModelGenerate, revalidate: RevalidateModelGenerate } = usePromise(GetModel, [], {
+    onData: () => {
+      RevalidateModelGenerateModelfile();
+    },
     onError: () => {
       setShowSelectModelForm(true);
     },
   });
+  const { data: ModelGenerateModelfile, revalidate: RevalidateModelGenerateModelfile } = usePromise(GetModelModfile);
+  const { data: ModelEmbedding, revalidate: RevalidateModelEmbedding } = usePromise(GetModelEmbedding);
+  const { data: ChainPreferences, revalidate: RevalidateChainPreferences } = usePromise(GetChainPreferences);
   const { data: ChatName = "Current", revalidate: RevalidateChatName } = usePromise(GetChatName);
   const [loading, setLoading]: [boolean, React.Dispatch<React.SetStateAction<boolean>>] = React.useState(false);
   const [query, setQuery]: [string, React.Dispatch<React.SetStateAction<string>>] = React.useState("");
@@ -75,25 +86,97 @@ export function ChatView(): JSX.Element {
   }
 
   /**
+   * Get Model Modelfile parameters.
+   * @returns {OllamaApiShowModelfile | undefined} Modelfile parameters.
+   */
+  async function GetModelModfile(): Promise<OllamaApiShowModelfile | undefined> {
+    const model = await LocalStorage.getItem(`chat_model_generate`);
+    if (model) {
+      return await OllamaApiShow(model as string)
+        .then(async (data) => await OllamaApiShowParseModelfile(data))
+        .catch(() => undefined);
+    } else {
+      return undefined;
+    }
+  }
+
+  /**
+   * Get Model for Embedding from LocalStorage.
+   * @returns {Promise<string | undefined>} Model.
+   */
+  async function GetModelEmbedding(): Promise<string | undefined> {
+    return await LocalStorage.getItem(`chat_model_embedding`);
+  }
+
+  /**
+   * Get Chain Preferences.
+   * @returns {Promise<ChainSettings | undefined>} Chain Settings.
+   */
+  async function GetChainPreferences(): Promise<ChainPreferences | undefined> {
+    const json = await LocalStorage.getItem(`chain_settings`);
+    if (json) {
+      return JSON.parse(json as string) as ChainPreferences;
+    }
+  }
+
+  /**
    * Start Inference with Ollama API.
    * @returns {Promise<void>}
    */
   async function Inference(): Promise<void> {
-    await showToast({ style: Toast.Style.Animated, title: "🧠 Performing Inference." });
-    setLoading(true);
-    const body = {
-      model: ModelGenerate,
-      prompt: query,
-    } as OllamaApiGenerateRequestBody;
-    if (answerListHistory.has(ChatName)) {
-      const l = answerListHistory.get(ChatName)?.length;
-      if (l && l > 0) {
-        body.context = answerListHistory.get(ChatName)?.[l - 1][2].context;
+    try {
+      const [prompt, tags] = GetTags(query);
+
+      setLoading(true);
+      setQuery("");
+
+      let docs: Document<Record<string, any>>[] | undefined = undefined;
+
+      if (tags.length > 0) {
+        await showToast({ style: Toast.Style.Animated, title: "📄 Loading Documents." });
+
+        let model = ModelGenerate;
+        if (ModelEmbedding) model = ModelEmbedding;
+
+        let DocsNumber: number | undefined;
+        if (ModelGenerateModelfile)
+          if (ChainPreferences === undefined || ChainPreferences.type === Chains.STUFF) {
+            DocsNumber = Math.trunc(
+              ((ModelGenerateModelfile.parameter.num_ctx * 4 - prompt.length - ModelGenerateModelfile.template.length) /
+                1000) *
+                0.5
+            );
+            if (model) docs = await GetDocument(prompt, model, tags, DocsNumber);
+          } else if (ChainPreferences.type === Chains.REFINE && ChainPreferences.parameter?.docsNumber) {
+            DocsNumber = ChainPreferences.parameter.docsNumber;
+            if (model)
+              docs = await GetDocument(prompt, model, tags, DocsNumber, ModelGenerateModelfile.parameter.num_ctx * 3.5);
+          }
       }
-    }
-    setQuery("");
-    OllamaApiGenerate(body)
-      .then(async (emiter) => {
+
+      let context: number[] | undefined;
+      if (answerListHistory.has(ChatName)) {
+        const l = answerListHistory.get(ChatName)?.length;
+        if (l && l > 0) {
+          context = answerListHistory.get(ChatName)?.[l - 1][2].context;
+        }
+      }
+
+      let stream: EventEmitter | undefined;
+      if (docs) {
+        if (ChainPreferences === undefined || ChainPreferences.type === Chains.STUFF) {
+          await showToast({ style: Toast.Style.Animated, title: "🧠 Inference with Documents." });
+          if (ModelGenerate) stream = await loadQAStuffChain(prompt, ModelGenerate, docs, context);
+        } else if (ChainPreferences.type === Chains.REFINE) {
+          await showToast({ style: Toast.Style.Animated, title: "🧠 Inference with Documents." });
+          if (ModelGenerate) stream = await loadQARefineChain(prompt, ModelGenerate, docs, context);
+        }
+      } else {
+        await showToast({ style: Toast.Style.Animated, title: "🧠 Inference." });
+        if (ModelGenerate) stream = await LLMChain(prompt, ModelGenerate, context);
+      }
+
+      if (stream) {
         setAnswerListHistory((prevState) => {
           let prevData = prevState.get(ChatName);
           if (prevData?.length === undefined) {
@@ -106,7 +189,7 @@ export function ChatView(): JSX.Element {
           return new Map(prevState);
         });
 
-        emiter.on("data", (data) => {
+        stream.on("data", (data) => {
           setAnswerListHistory((prevState) => {
             const prevData = prevState.get(ChatName);
             if (prevData) {
@@ -117,7 +200,7 @@ export function ChatView(): JSX.Element {
           });
         });
 
-        emiter.on("done", async (data) => {
+        stream.on("done", async (data) => {
           await showToast({ style: Toast.Style.Success, title: "🧠 Inference Done." });
           setAnswerListHistory((prevState) => {
             const prevData = prevState.get(ChatName);
@@ -129,10 +212,13 @@ export function ChatView(): JSX.Element {
           });
           setLoading(false);
         });
-      })
-      .catch(async (err) => {
-        await HandleError(err);
-      });
+      } else {
+        await showToast({ style: Toast.Style.Success, title: "🧠 Inference Done." });
+        setLoading(false);
+      }
+    } catch (err) {
+      await HandleError(err as Error);
+    }
   }
 
   /**
@@ -228,10 +314,22 @@ export function ChatView(): JSX.Element {
   // Form: SetModelView
   const [showSelectModelForm, setShowSelectModelForm]: [boolean, React.Dispatch<React.SetStateAction<boolean>>] =
     React.useState(false);
+  // Form: ChainView
+  const [showChainView, setShowChainView]: [boolean, React.Dispatch<React.SetStateAction<boolean>>] =
+    React.useState(false);
+  // Form: DocumentLoaderFileView
+  const [showDocumentLoaderFileForm, setShowDocumentLoaderFileForm]: [
+    boolean,
+    React.Dispatch<React.SetStateAction<boolean>>
+  ] = React.useState(false);
 
   // Revalidate ModelGenerate when model is changed with SetModelView Form
   React.useEffect(() => {
-    if (!showSelectModelForm) RevalidateModelGenerate();
+    if (!showSelectModelForm) {
+      RevalidateModelGenerate();
+      RevalidateModelEmbedding();
+      RevalidateChainPreferences();
+    }
   }, [showSelectModelForm]);
 
   // Get Answer from Local Storage every time SaveChatView is not visible
@@ -247,6 +345,11 @@ export function ChatView(): JSX.Element {
   if (showSelectModelForm) return <SetModelView Command={"chat"} ShowModelView={setShowSelectModelForm} />;
 
   if (showFormSaveChat) return <SaveChatView ShowSaveChatView={setShowFormSaveChat} ChatHistory={answerListHistory} />;
+
+  if (showChainView) return <ChainView ShowChainView={setShowChainView} />;
+
+  if (showDocumentLoaderFileForm)
+    return <DocumentLoaderFileView ShowDocumentLoaderFileView={setShowDocumentLoaderFileForm} />;
 
   /**
    * Raycast Action Panel for Ollama
@@ -294,6 +397,15 @@ export function ChatView(): JSX.Element {
             icon={Icon.Box}
             onAction={() => setShowSelectModelForm(true)}
             shortcut={{ modifiers: ["cmd"], key: "m" }}
+          />
+        </ActionPanel.Section>
+        <ActionPanel.Section title="Document Loader">
+          <Action title="Chain" icon={Icon.Link} onAction={() => setShowChainView(true)} />
+          <Action
+            title="File Loader"
+            icon={Icon.Finder}
+            onAction={() => setShowDocumentLoaderFileForm(true)}
+            shortcut={{ modifiers: ["cmd"], key: "f" }}
           />
         </ActionPanel.Section>
       </ActionPanel>
