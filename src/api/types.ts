@@ -3,9 +3,20 @@ export interface OllamaApiTagsResponse {
 }
 
 export interface OllamaApiShowResponse {
+  license?: string;
   modelfile: string;
   parameters: string;
   template: string;
+  system?: string;
+  detail?: OllamaApiShowDetail;
+}
+
+export interface OllamaApiShowDetail {
+  format: string;
+  family: string;
+  families: string[];
+  parameter_size: string;
+  quantization_level: string;
 }
 
 export interface OllamaApiShowModelfile {
@@ -40,7 +51,8 @@ export interface OllamaApiTagsResponseModel {
   name: string;
   modified_at: string;
   size: number;
-  download?: number;
+  digest: string;
+  details: OllamaApiShowDetail;
 }
 
 export interface OllamaApiTagsExtended {
@@ -62,13 +74,30 @@ export interface OllamaApiPullResponse {
 export interface OllamaApiGenerateRequestBody {
   model: string;
   prompt: string;
-  format?: string;
-  options?: OllamaApiGenerateOptionsRequestBody;
   system?: string;
   template?: string;
   context?: number[];
   stream?: boolean;
   raw?: boolean;
+  format?: string;
+  images?: string[];
+
+  options?: OllamaApiGenerateOptionsRequestBody;
+}
+
+export interface OllamaApiChatRequestBody {
+  model: string;
+  messages: OllamaApiChatMessage[];
+  stream?: boolean;
+  format?: string;
+
+  options?: OllamaApiGenerateOptionsRequestBody;
+}
+
+export interface OllamaApiChatMessage {
+  role: OllamaApiChatMessageRole;
+  content: string;
+  images?: string[];
 }
 
 export interface OllamaApiGenerateOptionsRequestBody {
@@ -110,8 +139,25 @@ export interface OllamaApiGenerateResponse {
   model: string;
   created_at: string;
   response: string;
+
   done: boolean;
   context?: number[];
+
+  total_duration?: number;
+  load_duration?: number;
+  prompt_eval_count?: number;
+  prompt_eval_duration?: number;
+  eval_count?: number;
+  eval_duration?: number;
+}
+
+export interface OllamaApiChatResponse {
+  model: string;
+  created_at: string;
+  message: OllamaApiChatMessage;
+
+  done: boolean;
+
   total_duration?: number;
   load_duration?: number;
   prompt_eval_count?: number;
@@ -196,6 +242,12 @@ export interface ChainPreferences {
 
 export interface ChainPreferencesParameter {
   docsNumber?: number;
+}
+
+export enum OllamaApiChatMessageRole {
+  SYSTEM = "system",
+  USER = "user",
+  ASSISTANT = "assistant",
 }
 
 export enum Chains {
