@@ -17,6 +17,7 @@ import { usePromise } from "@raycast/utils";
 interface props {
   Command: string;
   ShowModelView: React.Dispatch<React.SetStateAction<boolean>>;
+  Families?: string[];
 }
 
 interface FormData {
@@ -31,18 +32,22 @@ interface FormData {
  * @returns {JSX.Element} Raycast SetModelView.
  */
 export function SetModelView(props: props): JSX.Element {
-  const { isLoading: isLoadingInstalledModels, data: InstalledModels } = usePromise(getInstalledModels, [], {
-    onData: async (InstalledModels) => {
-      if (InstalledModels.length == 0) {
-        await showToast({
-          style: Toast.Style.Failure,
-          title: "No installed models",
-          message: "Please install a model to use this command.",
-        });
-        await launchCommand({ name: "ollama-models", type: LaunchType.UserInitiated });
-      }
-    },
-  });
+  const { isLoading: isLoadingInstalledModels, data: InstalledModels } = usePromise(
+    getInstalledModels,
+    [props.Families],
+    {
+      onData: async (InstalledModels) => {
+        if (InstalledModels.length == 0) {
+          await showToast({
+            style: Toast.Style.Failure,
+            title: "No installed models",
+            message: "Please install a model to use this command.",
+          });
+          await launchCommand({ name: "ollama-models", type: LaunchType.UserInitiated });
+        }
+      },
+    }
+  );
   const { isLoading: isLoadingEmbeddingModel, data: EmbeddingModel } = usePromise(GetModelEmbeddingFromLocalStorage);
   const [ShowEmbeddingModel, SetShowEmbeddingModel]: [boolean, React.Dispatch<React.SetStateAction<boolean>>] =
     React.useState(false);
@@ -81,25 +86,19 @@ export function SetModelView(props: props): JSX.Element {
 
   /**
    * Retrive installed model on Ollama.
+   * @param {string[]} families - Filter Installed Models by Families.
    * @returns {Promise<string[]>} Installed models as an array of string.
    */
-  async function getInstalledModels(): Promise<string[]> {
-    /**
-     * Convert Ollama Tags API response to an array string.
-     * @param {OllamaApiTagsResponse} data - Ollama Api Tags Response.
-     * @returns {string[]} Installed models as an array of string.
-     */
-    function ParseOllamaApiTags(data: OllamaApiTagsResponse): string[] {
-      const installedModels: string[] = [];
-      data.models.map((model) => {
-        installedModels.push(model.name);
-      });
-      return installedModels;
-    }
-
-    const InstalledModels: string[] = await OllamaApiTags().then(ParseOllamaApiTags);
-
-    return InstalledModels;
+  async function getInstalledModels(families: string[] | undefined): Promise<string[]> {
+    const InstalledModels = await OllamaApiTags();
+    if (families)
+      return InstalledModels.models
+        .filter((t) => {
+          if (!t.details.families) return false;
+          if (t.details.families.find((f) => families.find((fq) => f === fq))) return true;
+        })
+        .map((t) => t.name);
+    return InstalledModels.models.map((t) => t.name);
   }
 
   React.useEffect(() => {

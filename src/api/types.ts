@@ -230,6 +230,11 @@ export interface RaycastArgumentsOllamaCommandCustom {
   launchContext?: string;
 }
 
+export interface RaycastImage {
+  path: string;
+  base64: string;
+}
+
 export interface DocumentLoaderFiles {
   path: string;
   mtime?: Date;

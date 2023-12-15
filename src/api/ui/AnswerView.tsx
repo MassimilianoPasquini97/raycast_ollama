@@ -1,4 +1,9 @@
-import { OllamaApiGenerateRequestBody, OllamaApiGenerateResponse, OllamaApiTagsResponseModel } from "../types";
+import {
+  OllamaApiGenerateRequestBody,
+  OllamaApiGenerateResponse,
+  OllamaApiTagsResponseModel,
+  RaycastImage,
+} from "../types";
 import {
   ErrorOllamaCustomModel,
   ErrorOllamaModelNotInstalled,
@@ -13,6 +18,7 @@ import * as React from "react";
 import { Action, ActionPanel, Detail, Icon, LocalStorage, Toast, showToast } from "@raycast/api";
 import { getSelectedText, Clipboard, getPreferenceValues } from "@raycast/api";
 import { usePromise } from "@raycast/utils";
+import { GetImageFromFile, GetImageFromUrl } from "../common";
 
 const preferences = getPreferenceValues();
 
@@ -62,6 +68,7 @@ const defaultPrompt = new Map([
     "tweet",
     "You are a content marketer who needs to come up with a short but succinct tweet. Make sure to include the appropriate hashtags and links. All answers should be in the form of a tweet which has a max size of 280 characters. Every instruction will be the topic to create a tweet about.\n\nOutput only with the modified text.\n",
   ],
+  ["image", "Describe the content on the following images."],
 ]);
 
 /**
@@ -82,6 +89,7 @@ export function AnswerView(
   } = usePromise(GetModel, [command, model], {
     onError: HandleError,
   });
+  const ModelGenerateFamilies: React.MutableRefObject<string[] | undefined> = React.useRef(undefined);
   const [loading, setLoading]: [boolean, React.Dispatch<React.SetStateAction<boolean>>] = React.useState(false);
   const [answer, setAnswer]: [string, React.Dispatch<React.SetStateAction<string>>] = React.useState("");
   const [answerMetadata, setAnswerMetadata]: [
@@ -101,6 +109,7 @@ export function AnswerView(
         await showToast({ style: Toast.Style.Failure, title: err.message, message: err.suggest });
       if (err === ErrorRaycastModelNotConfiguredOnLocalStorage)
         await showToast({ style: Toast.Style.Failure, title: err.message });
+      if (command === "image") ModelGenerateFamilies.current = ["clip"];
       setShowSelectModelForm(true);
       return;
     } else if (err instanceof ErrorOllamaCustomModel) {
@@ -124,10 +133,10 @@ export function AnswerView(
   async function Inference(query: string, images: string[] | undefined = undefined): Promise<void> {
     await showToast({ style: Toast.Style.Animated, title: "🧠 Performing Inference." });
     setLoading(true);
-    setAnswer("");
     const body = {
       model: ModelGenerate?.name,
       prompt: query,
+      images: images,
     } as OllamaApiGenerateRequestBody;
     if (command) body.system = defaultPrompt.get(command);
     OllamaApiGenerate(body)
@@ -169,56 +178,81 @@ export function AnswerView(
   /**
    * Run Command
    */
-  function Run() {
-    if (ModelGenerate)
-      switch (preferences.ollamaResultViewInput) {
-        case "SelectedText":
-          getSelectedText()
-            .then((text) => {
-              Inference(text);
-            })
-            .catch(async () => {
-              if (preferences.ollamaResultViewInputFallback) {
-                Clipboard.readText()
-                  .then((text) => {
-                    if (text === undefined) throw "Empty Clipboard";
-                    Inference(text);
-                  })
-                  .catch(async () => {
-                    await showToast({
-                      style: Toast.Style.Failure,
-                      title: ErrorRaycastApiNoTextSelectedOrCopied.message,
-                    });
-                  });
-              } else {
-                await showToast({ style: Toast.Style.Failure, title: ErrorRaycastApiNoTextSelected.message });
-              }
+  async function Run() {
+    if (ModelGenerate) {
+      setAnswer("");
+      switch (command) {
+        case "image": {
+          ModelGenerateFamilies.current = ["clip"];
+          let image: RaycastImage | undefined;
+          const clip = await Clipboard.read();
+          if (clip.file)
+            image = await GetImageFromFile(clip.file).catch(async (err) => {
+              await showToast({ style: Toast.Style.Failure, title: err });
+              return undefined;
             });
-          break;
-        case "Clipboard":
-          Clipboard.readText()
-            .then((text) => {
-              if (text === undefined) throw "Empty Clipboard";
-              Inference(text);
-            })
-            .catch(async () => {
-              if (preferences.ollamaResultViewInputFallback) {
-                getSelectedText()
-                  .then((text) => {
-                    Inference(text);
-                  })
-                  .catch(async () => {
-                    await showToast({
-                      style: Toast.Style.Failure,
-                      title: ErrorRaycastApiNoTextSelectedOrCopied.message,
-                    });
-                  });
-              } else {
-                await showToast({ style: Toast.Style.Failure, title: ErrorRaycastApiNoTextCopied.message });
-              }
+          if (!image && clip.text)
+            image = await GetImageFromUrl(clip.text).catch(async (err) => {
+              await showToast({ style: Toast.Style.Failure, title: err });
+              return undefined;
             });
+          if (image) {
+            setAnswer(`<img src="${image?.path}" alt="image" height="180" width="auto">\n`);
+            Inference(" ", [image.base64]);
+          }
           break;
+        }
+        default:
+          switch (preferences.ollamaResultViewInput) {
+            case "SelectedText":
+              getSelectedText()
+                .then((text) => {
+                  Inference(text);
+                })
+                .catch(async () => {
+                  if (preferences.ollamaResultViewInputFallback) {
+                    Clipboard.readText()
+                      .then((text) => {
+                        if (text === undefined) throw "Empty Clipboard";
+                        Inference(text);
+                      })
+                      .catch(async () => {
+                        await showToast({
+                          style: Toast.Style.Failure,
+                          title: ErrorRaycastApiNoTextSelectedOrCopied.message,
+                        });
+                      });
+                  } else {
+                    await showToast({ style: Toast.Style.Failure, title: ErrorRaycastApiNoTextSelected.message });
+                  }
+                });
+              break;
+            case "Clipboard":
+              Clipboard.readText()
+                .then((text) => {
+                  if (text === undefined) throw "Empty Clipboard";
+                  Inference(text);
+                })
+                .catch(async () => {
+                  if (preferences.ollamaResultViewInputFallback) {
+                    getSelectedText()
+                      .then((text) => {
+                        Inference(text);
+                      })
+                      .catch(async () => {
+                        await showToast({
+                          style: Toast.Style.Failure,
+                          title: ErrorRaycastApiNoTextSelectedOrCopied.message,
+                        });
+                      });
+                  } else {
+                    await showToast({ style: Toast.Style.Failure, title: ErrorRaycastApiNoTextCopied.message });
+                  }
+                });
+              break;
+          }
       }
+    }
   }
 
   React.useEffect(() => {
@@ -232,7 +266,10 @@ export function AnswerView(
     if (!showSelectModelForm) RevalidateModelGenerate();
   }, [showSelectModelForm]);
 
-  if (showSelectModelForm && command) return <SetModelView Command={command} ShowModelView={setShowSelectModelForm} />;
+  if (showSelectModelForm && command)
+    return (
+      <SetModelView Command={command} ShowModelView={setShowSelectModelForm} Families={ModelGenerateFamilies.current} />
+    );
 
   /**
    * Answer Action Menu.

@@ -100,6 +100,13 @@
       "mode": "view"
     },
     {
+      "name": "ollama-image",
+      "title": "Describe Content of Image",
+      "subtitle": "Ollama",
+      "description": "Describe contentent of the image on the clipboard",
+      "mode": "view"
+    },
+    {
       "name": "ollama-improve-writing",
       "title": "Improve Writing",
       "subtitle": "Ollama",
