@@ -103,7 +103,7 @@
       "name": "ollama-image",
       "title": "Describe Content of Image",
       "subtitle": "Ollama",
-      "description": "Describe contentent of the image on the clipboard",
+      "description": "Describe content of the image on the clipboard or selected from finder",
       "mode": "view"
     },
     {

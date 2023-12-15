@@ -15,7 +15,16 @@ import {
 import { OllamaApiGenerate, OllamaApiTags } from "../ollama";
 import { SetModelView } from "./SetModelView";
 import * as React from "react";
-import { Action, ActionPanel, Detail, Icon, LocalStorage, Toast, showToast } from "@raycast/api";
+import {
+  Action,
+  ActionPanel,
+  Detail,
+  Icon,
+  LocalStorage,
+  Toast,
+  getSelectedFinderItems,
+  showToast,
+} from "@raycast/api";
 import { getSelectedText, Clipboard, getPreferenceValues } from "@raycast/api";
 import { usePromise } from "@raycast/utils";
 import { GetImageFromFile, GetImageFromUrl } from "../common";
@@ -184,21 +193,44 @@ export function AnswerView(
       switch (command) {
         case "image": {
           ModelGenerateFamilies.current = ["clip"];
-          let image: RaycastImage | undefined;
-          const clip = await Clipboard.read();
-          if (clip.file)
-            image = await GetImageFromFile(clip.file).catch(async (err) => {
-              await showToast({ style: Toast.Style.Failure, title: err });
-              return undefined;
+          const image: RaycastImage[] = [];
+          const finder = await getSelectedFinderItems().catch(() => []);
+          if (finder.length > 0) {
+            const p = finder.map((f) => {
+              return GetImageFromFile(f.path).catch(() => {
+                return undefined;
+              });
             });
-          if (!image && clip.text)
-            image = await GetImageFromUrl(clip.text).catch(async (err) => {
-              await showToast({ style: Toast.Style.Failure, title: err });
-              return undefined;
+            const i = await Promise.all(p);
+            i.forEach((i) => {
+              if (i) image.push(i);
             });
-          if (image) {
-            setAnswer(`<img src="${image?.path}" alt="image" height="180" width="auto">\n`);
-            Inference(" ", [image.base64]);
+          } else {
+            const clip = await Clipboard.read();
+            if (clip.file) {
+              const i = await GetImageFromFile(clip.file).catch(async (err) => {
+                await showToast({ style: Toast.Style.Failure, title: err });
+                return undefined;
+              });
+              if (i) image.push(i);
+            }
+            if (image.length < 1 && clip.text) {
+              const i = await GetImageFromUrl(clip.text).catch(async (err) => {
+                await showToast({ style: Toast.Style.Failure, title: err });
+                return undefined;
+              });
+              if (i) image.push(i);
+            }
+          }
+          if (image.length > 0) {
+            image.forEach((i) => {
+              setAnswer((prevState) => prevState + `<img src="${i.path}" alt="image" height="180" width="auto">`);
+            });
+            setAnswer((prevState) => prevState + "\n");
+            Inference(
+              " ",
+              image.map((i) => i.base64)
+            );
           }
           break;
         }
@@ -278,7 +310,7 @@ export function AnswerView(
   function AnswerAction(): JSX.Element {
     return (
       <ActionPanel title="Actions">
-        <Action.CopyToClipboard content={answer} />
+        <Action.CopyToClipboard content={command === "image" ? answer.split("\n")[2] : answer} />
         <Action
           title={showAnswerMetadata ? "Hide Metadata" : "Show Metadata"}
           icon={showAnswerMetadata ? Icon.EyeDisabled : Icon.Eye}

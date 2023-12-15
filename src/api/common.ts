@@ -30,7 +30,7 @@ export async function GetImageFromUrl(url: string): Promise<RaycastImage | undef
  * @returns {RaycastImage}
  */
 export async function GetImageFromFile(file: string) {
-  if (!file.match(/(file:)([/|.|\w|\s|-])*\.(?:jpg|png)/g)) throw new Error("Only PNG and JPG are supported");
+  if (!file.match(/(file:)?([/|.|\w|\s|-])*\.(?:jpg|png)/g)) throw new Error("Only PNG and JPG are supported");
 
   file = file.replace("file://", "");
 
