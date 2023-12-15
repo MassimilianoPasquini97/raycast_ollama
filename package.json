@@ -47,14 +47,6 @@
       "required": false,
       "title": "Enable Input Source Fallback",
       "label": "Check for enable input fallback"
-    },
-    {
-      "name": "ollamaShowMetadata",
-      "description": "Show inference statistics",
-      "type": "checkbox",
-      "required": false,
-      "title": "Show Inference Statistics",
-      "label": "Check for showing inference statistics"
     }
   ],
   "commands": [

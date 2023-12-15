@@ -46,6 +46,7 @@ export function ChatView(): JSX.Element {
   ] = React.useState(new Map());
   const [clipboardConversation, setClipboardConversation]: [string, React.Dispatch<React.SetStateAction<string>>] =
     React.useState("");
+  const [showAnswerMetadata, setShowAnswerMetadata] = React.useState(false);
 
   /**
    * Handle Error from Ollama API.
@@ -393,6 +394,12 @@ export function ChatView(): JSX.Element {
             />
           )}
           <Action
+            title={showAnswerMetadata ? "Hide Metadata" : "Show Metadata"}
+            icon={showAnswerMetadata ? Icon.EyeDisabled : Icon.Eye}
+            shortcut={{ modifiers: ["cmd"], key: "y" }}
+            onAction={() => setShowAnswerMetadata((prevState) => !prevState)}
+          />
+          <Action
             title="Change Model"
             icon={Icon.Box}
             onAction={() => setShowSelectModelForm(true)}
@@ -446,7 +453,7 @@ export function ChatView(): JSX.Element {
                 <List.Item.Detail
                   markdown={`${item[1]}`}
                   metadata={
-                    preferences.ollamaShowMetadata &&
+                    showAnswerMetadata &&
                     item[2].context && (
                       <Detail.Metadata>
                         <Detail.Metadata.Label title="Model" text={item[2].model} />

@@ -1,4 +1,4 @@
-import { OllamaApiGenerateRequestBody, OllamaApiGenerateResponse } from "../types";
+import { OllamaApiGenerateRequestBody, OllamaApiGenerateResponse, OllamaApiTagsResponseModel } from "../types";
 import {
   ErrorOllamaCustomModel,
   ErrorOllamaModelNotInstalled,
@@ -7,7 +7,7 @@ import {
   ErrorRaycastApiNoTextCopied,
   ErrorRaycastModelNotConfiguredOnLocalStorage,
 } from "../errors";
-import { OllamaApiGenerate } from "../ollama";
+import { OllamaApiGenerate, OllamaApiTags } from "../ollama";
 import { SetModelView } from "./SetModelView";
 import * as React from "react";
 import { Action, ActionPanel, Detail, Icon, LocalStorage, Toast, showToast } from "@raycast/api";
@@ -75,12 +75,12 @@ export function AnswerView(
   command: string | undefined = undefined,
   model: string | undefined = undefined
 ): JSX.Element {
-  // Main
-  const query: React.MutableRefObject<string> = React.useRef("");
-  const { data: ModelGenerate, revalidate: RevalidateModelGenerate } = usePromise(GetModel, [], {
-    onError: () => {
-      setShowSelectModelForm(true);
-    },
+  const {
+    data: ModelGenerate,
+    revalidate: RevalidateModelGenerate,
+    isLoading: IsLoadingModelGenerate,
+  } = usePromise(GetModel, [command, model], {
+    onError: HandleError,
   });
   const [loading, setLoading]: [boolean, React.Dispatch<React.SetStateAction<boolean>>] = React.useState(false);
   const [answer, setAnswer]: [string, React.Dispatch<React.SetStateAction<string>>] = React.useState("");
@@ -88,6 +88,7 @@ export function AnswerView(
     OllamaApiGenerateResponse,
     React.Dispatch<React.SetStateAction<OllamaApiGenerateResponse>>
   ] = React.useState({} as OllamaApiGenerateResponse);
+  const [showAnswerMetadata, setShowAnswerMetadata] = React.useState(false);
 
   /**
    * Handle Error from Ollama API.
@@ -95,9 +96,11 @@ export function AnswerView(
    * @returns {Promise<void>}
    */
   async function HandleError(err: Error): Promise<void> {
-    if (err instanceof ErrorOllamaModelNotInstalled) {
-      await showToast({ style: Toast.Style.Failure, title: err.message, message: err.suggest });
-      setLoading(false);
+    if (err instanceof ErrorOllamaModelNotInstalled || err === ErrorRaycastModelNotConfiguredOnLocalStorage) {
+      if (err instanceof ErrorOllamaModelNotInstalled)
+        await showToast({ style: Toast.Style.Failure, title: err.message, message: err.suggest });
+      if (err === ErrorRaycastModelNotConfiguredOnLocalStorage)
+        await showToast({ style: Toast.Style.Failure, title: err.message });
       setShowSelectModelForm(true);
       return;
     } else if (err instanceof ErrorOllamaCustomModel) {
@@ -106,25 +109,25 @@ export function AnswerView(
         title: err.message,
         message: `Model: ${err.model}, File: ${err.file}`,
       });
-      setLoading(false);
       return;
     } else {
       await showToast({ style: Toast.Style.Failure, title: err.message });
-      setLoading(false);
     }
   }
 
   /**
    * Start Inference with Ollama API.
+   * @param {string} query - Query.
+   * @param {string[]} images - Images.
    * @returns {Promise<void>}
    */
-  async function Inference(): Promise<void> {
+  async function Inference(query: string, images: string[] | undefined = undefined): Promise<void> {
     await showToast({ style: Toast.Style.Animated, title: "🧠 Performing Inference." });
     setLoading(true);
     setAnswer("");
     const body = {
-      model: ModelGenerate,
-      prompt: query.current,
+      model: ModelGenerate?.name,
+      prompt: query,
     } as OllamaApiGenerateRequestBody;
     if (command) body.system = defaultPrompt.get(command);
     OllamaApiGenerate(body)
@@ -145,39 +148,41 @@ export function AnswerView(
   }
 
   /**
-   * Get Model from LocalStorage.
-   * @returns {Promise<string>} Model.
+   * If `model` is undefined get model from LocalStorage.
+   * @param {string | undefined} command - Command name.
+   * @param {string | undefined} model - Model used for inference.
+   * @returns {Promise<OllamaApiShowResponse>} Model.
    */
-  async function GetModel(): Promise<string> {
-    if (model) {
-      return model;
-    } else {
-      const m = await LocalStorage.getItem(`${command}_model_generate`);
-      if (m) {
-        return m as string;
-      } else {
+  async function GetModel(command: string | undefined, model: string | undefined): Promise<OllamaApiTagsResponseModel> {
+    const tags = await OllamaApiTags();
+    if (!model) {
+      model = await LocalStorage.getItem(`${command}_model_generate`);
+      if (!model) {
         throw ErrorRaycastModelNotConfiguredOnLocalStorage;
       }
     }
+    const m = tags.models.find((t) => t.name === model);
+    if (!m) throw new ErrorOllamaModelNotInstalled("Model not installed", model);
+    return m;
   }
 
-  // When Model is set or changed start inference.
-  React.useEffect(() => {
+  /**
+   * Run Command
+   */
+  function Run() {
     if (ModelGenerate)
       switch (preferences.ollamaResultViewInput) {
         case "SelectedText":
           getSelectedText()
             .then((text) => {
-              query.current = text;
-              Inference();
+              Inference(text);
             })
             .catch(async () => {
               if (preferences.ollamaResultViewInputFallback) {
                 Clipboard.readText()
                   .then((text) => {
                     if (text === undefined) throw "Empty Clipboard";
-                    query.current = text;
-                    Inference();
+                    Inference(text);
                   })
                   .catch(async () => {
                     await showToast({
@@ -194,15 +199,13 @@ export function AnswerView(
           Clipboard.readText()
             .then((text) => {
               if (text === undefined) throw "Empty Clipboard";
-              query.current = text;
-              Inference();
+              Inference(text);
             })
             .catch(async () => {
               if (preferences.ollamaResultViewInputFallback) {
                 getSelectedText()
                   .then((text) => {
-                    query.current = text;
-                    Inference();
+                    Inference(text);
                   })
                   .catch(async () => {
                     await showToast({
@@ -216,80 +219,111 @@ export function AnswerView(
             });
           break;
       }
+  }
+
+  React.useEffect(() => {
+    Run();
   }, [ModelGenerate]);
 
   const [showSelectModelForm, setShowSelectModelForm]: [boolean, React.Dispatch<React.SetStateAction<boolean>>] =
     React.useState(false);
 
-  // Revalidate ModelGenerate when model is changed with SwtModelView Form
   React.useEffect(() => {
     if (!showSelectModelForm) RevalidateModelGenerate();
   }, [showSelectModelForm]);
 
   if (showSelectModelForm && command) return <SetModelView Command={command} ShowModelView={setShowSelectModelForm} />;
 
+  /**
+   * Answer Action Menu.
+   * @returns {JSX.Element}
+   */
+  function AnswerAction(): JSX.Element {
+    return (
+      <ActionPanel title="Actions">
+        <Action.CopyToClipboard content={answer} />
+        <Action
+          title={showAnswerMetadata ? "Hide Metadata" : "Show Metadata"}
+          icon={showAnswerMetadata ? Icon.EyeDisabled : Icon.Eye}
+          shortcut={{ modifiers: ["cmd"], key: "y" }}
+          onAction={() => setShowAnswerMetadata((prevState) => !prevState)}
+        />
+        <Action title="Retry" onAction={Run} shortcut={{ modifiers: ["cmd"], key: "r" }} icon={Icon.Repeat} />
+        <Action
+          title="Change Model"
+          icon={Icon.Box}
+          onAction={() => setShowSelectModelForm(true)}
+          shortcut={{ modifiers: ["cmd"], key: "m" }}
+        />
+      </ActionPanel>
+    );
+  }
+
+  /**
+   * Answer Metadata.
+   * @param prop
+   * @returns {JSX.Element}
+   */
+  function AnswerMetadata(prop: { answer: OllamaApiGenerateResponse; tag: OllamaApiTagsResponseModel }): JSX.Element {
+    return (
+      <Detail.Metadata>
+        <Detail.Metadata.Label title="Model" text={prop.tag.name} />
+        <Detail.Metadata.Label title="Family" text={prop.tag.details.family} />
+        {prop.tag.details.families && prop.tag.details.families.length > 0 && (
+          <Detail.Metadata.TagList title="Families">
+            {prop.tag.details.families.map((f) => (
+              <Detail.Metadata.TagList.Item text={f} />
+            ))}
+          </Detail.Metadata.TagList>
+        )}
+        <Detail.Metadata.Label title="Parameter Size" text={prop.tag.details.parameter_size} />
+        <Detail.Metadata.Label title="Quantization Level" text={prop.tag.details.quantization_level} />
+        <Detail.Metadata.Separator />
+        {prop.answer.eval_count && prop.answer.eval_duration ? (
+          <Detail.Metadata.Label
+            title="Generation Speed"
+            text={`${(prop.answer.eval_count / (prop.answer.eval_duration / 1e9)).toFixed(2)} token/s`}
+          />
+        ) : null}
+        {prop.answer.total_duration ? (
+          <Detail.Metadata.Label
+            title="Total Inference Duration"
+            text={`${(prop.answer.total_duration / 1e9).toFixed(2)}s`}
+          />
+        ) : null}
+        {prop.answer.load_duration ? (
+          <Detail.Metadata.Label title="Load Duration" text={`${(prop.answer.load_duration / 1e9).toFixed(2)}s`} />
+        ) : null}
+        {prop.answer.prompt_eval_count ? (
+          <Detail.Metadata.Label title="Prompt Eval Count" text={`${prop.answer.prompt_eval_count}`} />
+        ) : null}
+        {prop.answer.prompt_eval_duration ? (
+          <Detail.Metadata.Label
+            title="Prompt Eval Duration"
+            text={`${(prop.answer.prompt_eval_duration / 1e9).toFixed(2)}s`}
+          />
+        ) : null}
+        {prop.answer.eval_count ? (
+          <Detail.Metadata.Label title="Eval Count" text={`${prop.answer.eval_count}`} />
+        ) : null}
+        {prop.answer.eval_duration ? (
+          <Detail.Metadata.Label title="Eval Duration" text={`${(prop.answer.eval_duration / 1e9).toFixed(2)}s`} />
+        ) : null}
+      </Detail.Metadata>
+    );
+  }
+
   return (
     <Detail
       markdown={answer}
-      isLoading={loading}
-      actions={
-        !loading && (
-          <ActionPanel title="Actions">
-            <Action.CopyToClipboard content={answer} />
-            <Action title="Retry" onAction={Inference} shortcut={{ modifiers: ["cmd"], key: "r" }} icon={Icon.Repeat} />
-            <Action
-              title="Change Model"
-              icon={Icon.Box}
-              onAction={() => setShowSelectModelForm(true)}
-              shortcut={{ modifiers: ["cmd"], key: "m" }}
-            />
-          </ActionPanel>
-        )
-      }
+      isLoading={loading || IsLoadingModelGenerate}
+      actions={!loading && !IsLoadingModelGenerate && <AnswerAction />}
       metadata={
         !loading &&
-        preferences.ollamaShowMetadata && (
-          <Detail.Metadata>
-            <Detail.Metadata.Label title="Model" text={answerMetadata.model} />
-            <Detail.Metadata.Separator />
-            {answerMetadata.eval_count && answerMetadata.eval_duration ? (
-              <Detail.Metadata.Label
-                title="Generation Speed"
-                text={`${(answerMetadata.eval_count / (answerMetadata.eval_duration / 1e9)).toFixed(2)} token/s`}
-              />
-            ) : null}
-            {answerMetadata.total_duration ? (
-              <Detail.Metadata.Label
-                title="Total Inference Duration"
-                text={`${(answerMetadata.total_duration / 1e9).toFixed(2)}s`}
-              />
-            ) : null}
-            {answerMetadata.load_duration ? (
-              <Detail.Metadata.Label
-                title="Load Duration"
-                text={`${(answerMetadata.load_duration / 1e9).toFixed(2)}s`}
-              />
-            ) : null}
-            {answerMetadata.prompt_eval_count ? (
-              <Detail.Metadata.Label title="Prompt Eval Count" text={`${answerMetadata.prompt_eval_count}`} />
-            ) : null}
-            {answerMetadata.prompt_eval_duration ? (
-              <Detail.Metadata.Label
-                title="Prompt Eval Duration"
-                text={`${(answerMetadata.prompt_eval_duration / 1e9).toFixed(2)}s`}
-              />
-            ) : null}
-            {answerMetadata.eval_count ? (
-              <Detail.Metadata.Label title="Eval Count" text={`${answerMetadata.eval_count}`} />
-            ) : null}
-            {answerMetadata.eval_duration ? (
-              <Detail.Metadata.Label
-                title="Eval Duration"
-                text={`${(answerMetadata.eval_duration / 1e9).toFixed(2)}s`}
-              />
-            ) : null}
-          </Detail.Metadata>
-        )
+        !IsLoadingModelGenerate &&
+        ModelGenerate &&
+        answerMetadata &&
+        showAnswerMetadata && <AnswerMetadata answer={answerMetadata} tag={ModelGenerate} />
       }
     />
   );
