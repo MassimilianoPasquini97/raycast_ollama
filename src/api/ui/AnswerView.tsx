@@ -213,8 +213,7 @@ export function AnswerView(
                 return undefined;
               });
               if (i) image.push(i);
-            }
-            if (image.length < 1 && clip.text) {
+            } else if (clip.text) {
               const i = await GetImageFromUrl(clip.text).catch(async (err) => {
                 await showToast({ style: Toast.Style.Failure, title: err });
                 return undefined;
