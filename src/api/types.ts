@@ -224,7 +224,9 @@ export interface RaycastArgumentsOllamaChatCustom {
 export interface RaycastArgumentsOllamaCommandCustom {
   fallbackText?: string;
   arguments: {
-    model: string;
+    prompt: string;
+    model?: string;
+    image?: string;
   };
   launchType: string;
   launchContext?: string;

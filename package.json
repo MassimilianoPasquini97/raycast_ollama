@@ -170,10 +170,32 @@
       "mode": "view",
       "arguments": [
         {
+          "name": "prompt",
+          "placeholder": "Prompt",
+          "type": "text",
+          "required": true
+        },
+        {
+          "name": "image",
+          "placeholder": "Use Image",
+          "type": "dropdown",
+          "required": false,
+          "data": [
+            {
+              "title": "Yes",
+              "value": "yes"
+            },
+            {
+              "title": "No",
+              "value": "no"
+            }
+          ]
+        },
+        {
           "name": "model",
           "placeholder": "Model",
           "type": "text",
-          "required": true
+          "required": false
         }
       ]
     }

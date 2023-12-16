@@ -6,6 +6,7 @@ import {
   ErrorRaycastApiNoTextSelected,
   ErrorRaycastApiNoTextCopied,
   ErrorRaycastModelNotConfiguredOnLocalStorage,
+  ErrorOllamaModelNotMultimodal,
 } from "../errors";
 import { OllamaApiGenerate, OllamaApiTags } from "../ollama";
 import { SetModelView } from "./SetModelView";
@@ -63,8 +64,15 @@ const defaultPrompt = new Map([
     "tweet",
     "You are a content marketer who needs to come up with a short but succinct tweet. Make sure to include the appropriate hashtags and links. All answers should be in the form of a tweet which has a max size of 280 characters. Every instruction will be the topic to create a tweet about.\n\nOutput only with the modified text.\n",
   ],
-  ["image", "Describe the content on the following images."],
+  ["image-describe", "Describe the content on the following images."],
 ]);
+
+interface props {
+  prompt?: string;
+  command?: string;
+  image?: boolean;
+  model?: string;
+}
 
 /**
  * Return JSX element with generated text and relative metadata.
@@ -73,15 +81,12 @@ const defaultPrompt = new Map([
  * @param {string | undefined} model - Model used for inference.
  * @returns {JSX.Element} Raycast Answer View.
  */
-export function AnswerView(
-  command: string | undefined = undefined,
-  model: string | undefined = undefined
-): JSX.Element {
+export function AnswerView(props: props): JSX.Element {
   const {
     data: ModelGenerate,
     revalidate: RevalidateModelGenerate,
     isLoading: IsLoadingModelGenerate,
-  } = usePromise(GetModel, [command, model], {
+  } = usePromise(GetModel, [props.command, props.model], {
     onError: HandleError,
   });
   const ModelGenerateFamilies: React.MutableRefObject<string[] | undefined> = React.useRef(undefined);
@@ -100,13 +105,16 @@ export function AnswerView(
    * @returns {Promise<void>}
    */
   async function HandleError(err: Error): Promise<void> {
-    if (err instanceof ErrorOllamaModelNotInstalled || err === ErrorRaycastModelNotConfiguredOnLocalStorage) {
-      if (err instanceof ErrorOllamaModelNotInstalled)
+    if (
+      err instanceof ErrorOllamaModelNotInstalled ||
+      err instanceof ErrorOllamaModelNotMultimodal ||
+      err === ErrorRaycastModelNotConfiguredOnLocalStorage
+    ) {
+      if (err instanceof ErrorOllamaModelNotInstalled || err instanceof ErrorOllamaModelNotMultimodal)
         await showToast({ style: Toast.Style.Failure, title: err.message, message: err.suggest });
       if (err === ErrorRaycastModelNotConfiguredOnLocalStorage)
         await showToast({ style: Toast.Style.Failure, title: err.message });
-      if (command === "image") ModelGenerateFamilies.current = ["clip"];
-      setShowSelectModelForm(true);
+      if (!props.model) setShowSelectModelForm(true);
       return;
     } else if (err instanceof ErrorOllamaCustomModel) {
       await showToast({
@@ -134,7 +142,8 @@ export function AnswerView(
       prompt: query,
       images: images,
     } as OllamaApiGenerateRequestBody;
-    if (command) body.system = defaultPrompt.get(command);
+    if (props.command) body.system = defaultPrompt.get(props.command);
+    if (props.prompt) body.system = props.prompt;
     OllamaApiGenerate(body)
       .then(async (emiter) => {
         emiter.on("data", (data) => {
@@ -159,6 +168,7 @@ export function AnswerView(
    * @returns {Promise<OllamaApiShowResponse>} Model.
    */
   async function GetModel(command: string | undefined, model: string | undefined): Promise<OllamaApiTagsResponseModel> {
+    if (props.image) ModelGenerateFamilies.current = ["clip"];
     const tags = await OllamaApiTags();
     if (!model) {
       model = await LocalStorage.getItem(`${command}_model_generate`);
@@ -168,6 +178,13 @@ export function AnswerView(
     }
     const m = tags.models.find((t) => t.name === model);
     if (!m) throw new ErrorOllamaModelNotInstalled("Model not installed", model);
+    if (
+      ModelGenerateFamilies.current &&
+      !m.details.families.find((f) => (ModelGenerateFamilies.current as string[]).find((fq) => f === fq))
+    ) {
+      if (!m.details.families.find((f) => f === "clip"))
+        throw new ErrorOllamaModelNotMultimodal("Model not multimodal", model);
+    }
     return m;
   }
 
@@ -178,9 +195,8 @@ export function AnswerView(
     if (ModelGenerate) {
       setImageView("");
       setAnswer("");
-      switch (command) {
-        case "image": {
-          ModelGenerateFamilies.current = ["clip"];
+      switch (props.image) {
+        case true: {
           const image = await GetImage().catch(async (err) => {
             showToast({ style: Toast.Style.Failure, title: err });
             return [];
@@ -261,9 +277,13 @@ export function AnswerView(
     if (!showSelectModelForm) RevalidateModelGenerate();
   }, [showSelectModelForm]);
 
-  if (showSelectModelForm && command)
+  if (showSelectModelForm && props.command)
     return (
-      <SetModelView Command={command} ShowModelView={setShowSelectModelForm} Families={ModelGenerateFamilies.current} />
+      <SetModelView
+        Command={props.command}
+        ShowModelView={setShowSelectModelForm}
+        Families={ModelGenerateFamilies.current}
+      />
     );
 
   /**
@@ -281,12 +301,14 @@ export function AnswerView(
           onAction={() => setShowAnswerMetadata((prevState) => !prevState)}
         />
         <Action title="Retry" onAction={Run} shortcut={{ modifiers: ["cmd"], key: "r" }} icon={Icon.Repeat} />
-        <Action
-          title="Change Model"
-          icon={Icon.Box}
-          onAction={() => setShowSelectModelForm(true)}
-          shortcut={{ modifiers: ["cmd"], key: "m" }}
-        />
+        {props.command && (
+          <Action
+            title="Change Model"
+            icon={Icon.Box}
+            onAction={() => setShowSelectModelForm(true)}
+            shortcut={{ modifiers: ["cmd"], key: "m" }}
+          />
+        )}
       </ActionPanel>
     );
   }

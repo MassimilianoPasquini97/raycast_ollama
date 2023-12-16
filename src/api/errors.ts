@@ -31,3 +31,14 @@ export class ErrorOllamaModelNotInstalled extends Error {
     this.suggest = `Select a different model or install throw 'Manage Models' command`;
   }
 }
+
+export class ErrorOllamaModelNotMultimodal extends Error {
+  public readonly model?: string;
+  public readonly suggest?: string;
+
+  constructor(message: string, model?: string) {
+    super(message);
+    this.model = model;
+    this.suggest = `Select a different model with multimodal capabilities`;
+  }
+}
