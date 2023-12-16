@@ -1,9 +1,4 @@
-import {
-  OllamaApiGenerateRequestBody,
-  OllamaApiGenerateResponse,
-  OllamaApiTagsResponseModel,
-  RaycastImage,
-} from "../types";
+import { OllamaApiGenerateRequestBody, OllamaApiGenerateResponse, OllamaApiTagsResponseModel } from "../types";
 import {
   ErrorOllamaCustomModel,
   ErrorOllamaModelNotInstalled,
@@ -15,19 +10,10 @@ import {
 import { OllamaApiGenerate, OllamaApiTags } from "../ollama";
 import { SetModelView } from "./SetModelView";
 import * as React from "react";
-import {
-  Action,
-  ActionPanel,
-  Detail,
-  Icon,
-  LocalStorage,
-  Toast,
-  getSelectedFinderItems,
-  showToast,
-} from "@raycast/api";
+import { Action, ActionPanel, Detail, Icon, LocalStorage, Toast, showToast } from "@raycast/api";
 import { getSelectedText, Clipboard, getPreferenceValues } from "@raycast/api";
 import { usePromise } from "@raycast/utils";
-import { GetImageFromFile, GetImageFromUrl } from "../common";
+import { GetImage } from "../common";
 
 const preferences = getPreferenceValues();
 
@@ -100,6 +86,7 @@ export function AnswerView(
   });
   const ModelGenerateFamilies: React.MutableRefObject<string[] | undefined> = React.useRef(undefined);
   const [loading, setLoading]: [boolean, React.Dispatch<React.SetStateAction<boolean>>] = React.useState(false);
+  const [imageView, setImageView]: [string, React.Dispatch<React.SetStateAction<string>>] = React.useState("");
   const [answer, setAnswer]: [string, React.Dispatch<React.SetStateAction<string>>] = React.useState("");
   const [answerMetadata, setAnswerMetadata]: [
     OllamaApiGenerateResponse,
@@ -189,43 +176,20 @@ export function AnswerView(
    */
   async function Run() {
     if (ModelGenerate) {
+      setImageView("");
       setAnswer("");
       switch (command) {
         case "image": {
           ModelGenerateFamilies.current = ["clip"];
-          const image: RaycastImage[] = [];
-          const finder = await getSelectedFinderItems().catch(() => []);
-          if (finder.length > 0) {
-            const p = finder.map((f) => {
-              return GetImageFromFile(f.path).catch(() => {
-                return undefined;
-              });
-            });
-            const i = await Promise.all(p);
-            i.forEach((i) => {
-              if (i) image.push(i);
-            });
-          } else {
-            const clip = await Clipboard.read();
-            if (clip.file) {
-              const i = await GetImageFromFile(clip.file).catch(async (err) => {
-                await showToast({ style: Toast.Style.Failure, title: err });
-                return undefined;
-              });
-              if (i) image.push(i);
-            } else if (clip.text) {
-              const i = await GetImageFromUrl(clip.text).catch(async (err) => {
-                await showToast({ style: Toast.Style.Failure, title: err });
-                return undefined;
-              });
-              if (i) image.push(i);
-            }
-          }
+          const image = await GetImage().catch(async (err) => {
+            showToast({ style: Toast.Style.Failure, title: err });
+            return [];
+          });
           if (image.length > 0) {
             image.forEach((i) => {
-              setAnswer((prevState) => prevState + `<img src="${i.path}" alt="image" height="180" width="auto">`);
+              setImageView((prevState) => prevState + i.html);
             });
-            setAnswer((prevState) => prevState + "\n");
+            setImageView((prevState) => prevState + "\n");
             Inference(
               " ",
               image.map((i) => i.base64)
@@ -309,7 +273,7 @@ export function AnswerView(
   function AnswerAction(): JSX.Element {
     return (
       <ActionPanel title="Actions">
-        <Action.CopyToClipboard content={command === "image" ? answer.split("\n")[2] : answer} />
+        <Action.CopyToClipboard content={answer} />
         <Action
           title={showAnswerMetadata ? "Hide Metadata" : "Show Metadata"}
           icon={showAnswerMetadata ? Icon.EyeDisabled : Icon.Eye}
@@ -383,7 +347,7 @@ export function AnswerView(
 
   return (
     <Detail
-      markdown={answer}
+      markdown={`${imageView}${answer}`}
       isLoading={loading || IsLoadingModelGenerate}
       actions={!loading && !IsLoadingModelGenerate && <AnswerAction />}
       metadata={
