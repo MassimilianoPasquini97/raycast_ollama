@@ -43,6 +43,8 @@ const defaultPrompt = new Map([
     "friendly",
     "Act as a writer. Make the following text more friendly while keeping the core idea.\n\nOutput only with the modified text.\n",
   ],
+  ["image-describe", "Describe the content on the following images.\n"],
+  ["image-to-text", "Extract all the text from the following images.\n"],
   [
     "improve",
     "Act as a writer. Improve the writing of the following text while keeping the core idea.\n\nOutput only with the modified text.\n",
@@ -64,7 +66,6 @@ const defaultPrompt = new Map([
     "tweet",
     "You are a content marketer who needs to come up with a short but succinct tweet. Make sure to include the appropriate hashtags and links. All answers should be in the form of a tweet which has a max size of 280 characters. Every instruction will be the topic to create a tweet about.\n\nOutput only with the modified text.\n",
   ],
-  ["image-describe", "Describe the content on the following images."],
 ]);
 
 interface props {

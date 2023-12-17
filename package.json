@@ -100,10 +100,17 @@
       "mode": "view"
     },
     {
-      "name": "ollama-image",
+      "name": "ollama-image-describe",
       "title": "Describe Content of Image",
       "subtitle": "Ollama",
       "description": "Describe content of the image on the clipboard or selected from finder",
+      "mode": "view"
+    },
+    {
+      "name": "ollama-image-to-text",
+      "title": "Get Text From Image",
+      "subtitle": "Ollama",
+      "description": "Get text from image on the clipboard or selected from finder",
       "mode": "view"
     },
     {
