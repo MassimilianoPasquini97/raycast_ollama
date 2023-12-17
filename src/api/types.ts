@@ -55,14 +55,6 @@ export interface OllamaApiTagsResponseModel {
   details: OllamaApiShowDetail;
 }
 
-export interface OllamaApiTagsExtended {
-  models: OllamaApiTagsModelExtended[];
-}
-
-export interface OllamaApiTagsModelExtended extends OllamaApiTagsResponseModel {
-  modelfile?: OllamaApiShowModelfile;
-}
-
 export interface OllamaApiPullResponse {
   status: string;
   digest?: string;
@@ -168,57 +160,6 @@ export interface OllamaApiChatResponse {
 
 export interface OllamaApiEmbeddingsResponse {
   embedding: number[];
-}
-
-export interface OllamaApiGenerateResponseMetadata {
-  model: string;
-  total_duration: number;
-  load_duration: number;
-  sample_count: number;
-  sample_duration: number;
-  prompt_eval_count: number;
-  prompt_eval_duration: number;
-  eval_count: number;
-  eval_duration: number;
-}
-
-export interface OllamaPromptFormat {
-  promptStart: string;
-  promptEnd: string;
-  tagEnd: string;
-}
-
-export interface OllamaPrompt {
-  prompt: string;
-  tagEnd: string;
-}
-
-export interface RaycastArgumentsOllamaAsk {
-  fallbackText?: string;
-  arguments: {
-    query: string;
-  };
-  launchType: string;
-  launchContext?: string;
-}
-
-export interface RaycastArgumentsOllamaAskCustom {
-  fallbackText?: string;
-  arguments: {
-    model: string;
-    query: string;
-  };
-  launchType: string;
-  launchContext?: string;
-}
-
-export interface RaycastArgumentsOllamaChatCustom {
-  fallbackText?: string;
-  arguments: {
-    model: string;
-  };
-  launchType: string;
-  launchContext?: string;
 }
 
 export interface RaycastArgumentsOllamaCommandCustom {
