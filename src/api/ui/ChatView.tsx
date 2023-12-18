@@ -299,31 +299,31 @@ export function ChatView(): JSX.Element {
     return <DocumentLoaderFileView ShowDocumentLoaderFileView={setShowDocumentLoaderFileForm} />;
 
   /**
-   * Raycast Action Panel for Ollama
-   * @param {RaycastChatMessage} item? - Selected Message
+   * Action Panel for  Message
+   * @param {RaycastChatMessage} message - Selected Message
    * @returns {JSX.Element}
    */
-  function ActionOllama(item?: RaycastChatMessage): JSX.Element {
+  function ActionMessage(props: { message?: RaycastChatMessage }): JSX.Element {
     return (
       <ActionPanel>
         <ActionPanel.Section title="Ollama">
           {query && ModelGenerate && <Action title="Get Answer" icon={Icon.SpeechBubbleActive} onAction={Inference} />}
-          {item && (
+          {props.message && (
             <Action.CopyToClipboard
               title="Copy Question"
-              content={item.messages[0].content as string}
+              content={props.message.messages[0].content as string}
               shortcut={{ modifiers: ["cmd"], key: "b" }}
             />
           )}
-          {item && (
+          {props.message && (
             <Action.CopyToClipboard
               title="Copy Answer"
-              content={item.messages[1].content as string}
+              content={props.message.messages[1].content as string}
               shortcut={{ modifiers: ["cmd"], key: "c" }}
             />
           )}
-          {item && <Action.CopyToClipboard title="Copy Conversation" content={ClipboardConversation()} />}
-          {ChatName === "Current" && ChatHistoryKeys && item && (
+          {props.message && <Action.CopyToClipboard title="Copy Conversation" content={ClipboardConversation()} />}
+          {ChatName === "Current" && ChatHistoryKeys && props.message && (
             <Action
               title="Archive Conversation"
               icon={Icon.Box}
@@ -331,7 +331,7 @@ export function ChatView(): JSX.Element {
               shortcut={{ modifiers: ["cmd"], key: "s" }}
             />
           )}
-          {item && (
+          {props.message && (
             <Action
               title="Clear Conversation"
               icon={Icon.Trash}
@@ -370,6 +370,50 @@ export function ChatView(): JSX.Element {
     );
   }
 
+  /**
+   * Raycast Detail Metadata for Ollama Message
+   * @param {RaycastChatMessage} message
+   * @returns {JSX.Element}
+   */
+  function DetailMetadataMessage(props: { message: RaycastChatMessage }): JSX.Element {
+    return (
+      <Detail.Metadata>
+        <Detail.Metadata.Label title="Model" text={props.message.model} />
+        <Detail.Metadata.Separator />
+        {props.message.eval_count && props.message.eval_duration ? (
+          <Detail.Metadata.Label
+            title="Generation Speed"
+            text={`${(props.message.eval_count / (props.message.eval_duration / 1e9)).toFixed(2)} token/s`}
+          />
+        ) : null}
+        {props.message.total_duration ? (
+          <Detail.Metadata.Label
+            title="Total Inference Duration"
+            text={`${(props.message.total_duration / 1e9).toFixed(2)}s`}
+          />
+        ) : null}
+        {props.message.load_duration ? (
+          <Detail.Metadata.Label title="Load Duration" text={`${(props.message.load_duration / 1e9).toFixed(2)}s`} />
+        ) : null}
+        {props.message.prompt_eval_count ? (
+          <Detail.Metadata.Label title="Prompt Eval Count" text={`${props.message.prompt_eval_count}`} />
+        ) : null}
+        {props.message.prompt_eval_duration ? (
+          <Detail.Metadata.Label
+            title="Prompt Eval Duration"
+            text={`${(props.message.prompt_eval_duration / 1e9).toFixed(2)}s`}
+          />
+        ) : null}
+        {props.message.eval_count ? (
+          <Detail.Metadata.Label title="Eval Count" text={`${props.message.eval_count}`} />
+        ) : null}
+        {props.message.eval_duration ? (
+          <Detail.Metadata.Label title="Eval Duration" text={`${(props.message.eval_duration / 1e9).toFixed(2)}s`} />
+        ) : null}
+      </Detail.Metadata>
+    );
+  }
+
   return (
     <List
       isLoading={
@@ -392,7 +436,7 @@ export function ChatView(): JSX.Element {
           IsLoadingChainPreferences ||
           IsLoadingChatName ||
           IsLoadingChatHistoryKeys
-        ) && ActionOllama()
+        ) && <ActionMessage />
       }
       isShowingDetail={ChatHistory.length > 0}
       searchBarAccessory={
@@ -412,55 +456,11 @@ export function ChatView(): JSX.Element {
             title={item.messages[0].content}
             key={index}
             id={index.toString()}
-            actions={!loading && ActionOllama(item)}
+            actions={!loading && <ActionMessage message={item} />}
             detail={
               <List.Item.Detail
                 markdown={`${item.messages[1].content}`}
-                metadata={
-                  showAnswerMetadata &&
-                  item.done && (
-                    <Detail.Metadata>
-                      <Detail.Metadata.Label title="Model" text={item.model} />
-                      <Detail.Metadata.Separator />
-                      {item.eval_count && item.eval_duration ? (
-                        <Detail.Metadata.Label
-                          title="Generation Speed"
-                          text={`${(item.eval_count / (item.eval_duration / 1e9)).toFixed(2)} token/s`}
-                        />
-                      ) : null}
-                      {item.total_duration ? (
-                        <Detail.Metadata.Label
-                          title="Total Inference Duration"
-                          text={`${(item.total_duration / 1e9).toFixed(2)}s`}
-                        />
-                      ) : null}
-                      {item.load_duration ? (
-                        <Detail.Metadata.Label
-                          title="Load Duration"
-                          text={`${(item.load_duration / 1e9).toFixed(2)}s`}
-                        />
-                      ) : null}
-                      {item.prompt_eval_count ? (
-                        <Detail.Metadata.Label title="Prompt Eval Count" text={`${item.prompt_eval_count}`} />
-                      ) : null}
-                      {item.prompt_eval_duration ? (
-                        <Detail.Metadata.Label
-                          title="Prompt Eval Duration"
-                          text={`${(item.prompt_eval_duration / 1e9).toFixed(2)}s`}
-                        />
-                      ) : null}
-                      {item.eval_count ? (
-                        <Detail.Metadata.Label title="Eval Count" text={`${item.eval_count}`} />
-                      ) : null}
-                      {item.eval_duration ? (
-                        <Detail.Metadata.Label
-                          title="Eval Duration"
-                          text={`${(item.eval_duration / 1e9).toFixed(2)}s`}
-                        />
-                      ) : null}
-                    </Detail.Metadata>
-                  )
-                }
+                metadata={showAnswerMetadata && item.done && <DetailMetadataMessage message={item} />}
               />
             }
           />
