@@ -1,4 +1,9 @@
-import { OllamaApiGenerateRequestBody, OllamaApiGenerateResponse, OllamaApiTagsResponseModel } from "../types";
+import {
+  ModelType,
+  OllamaApiGenerateRequestBody,
+  OllamaApiGenerateResponse,
+  OllamaApiTagsResponseModel,
+} from "../types";
 import {
   ErrorOllamaCustomModel,
   ErrorOllamaModelNotInstalled,
@@ -14,7 +19,7 @@ import * as React from "react";
 import { Action, ActionPanel, Detail, Icon, LocalStorage, Toast, showToast } from "@raycast/api";
 import { getSelectedText, Clipboard, getPreferenceValues } from "@raycast/api";
 import { usePromise } from "@raycast/utils";
-import { GetImage } from "../common";
+import { GetImage, GetModel } from "../common";
 
 const preferences = getPreferenceValues();
 
@@ -87,10 +92,9 @@ export function AnswerView(props: props): JSX.Element {
     data: ModelGenerate,
     revalidate: RevalidateModelGenerate,
     isLoading: IsLoadingModelGenerate,
-  } = usePromise(GetModel, [props.command, props.model], {
+  } = usePromise(GetModel, [props.command, props.image, props.model, ModelType.GENERATE], {
     onError: HandleError,
   });
-  const ModelGenerateFamilies: React.MutableRefObject<string[] | undefined> = React.useRef(undefined);
   const [loading, setLoading]: [boolean, React.Dispatch<React.SetStateAction<boolean>>] = React.useState(false);
   const [imageView, setImageView]: [string, React.Dispatch<React.SetStateAction<string>>] = React.useState("");
   const [answer, setAnswer]: [string, React.Dispatch<React.SetStateAction<string>>] = React.useState("");
@@ -160,33 +164,6 @@ export function AnswerView(props: props): JSX.Element {
       .catch(async (err) => {
         await HandleError(err);
       });
-  }
-
-  /**
-   * If `model` is undefined get model from LocalStorage.
-   * @param {string | undefined} command - Command name.
-   * @param {string | undefined} model - Model used for inference.
-   * @returns {Promise<OllamaApiShowResponse>} Model.
-   */
-  async function GetModel(command: string | undefined, model: string | undefined): Promise<OllamaApiTagsResponseModel> {
-    if (props.image) ModelGenerateFamilies.current = ["clip"];
-    const tags = await OllamaApiTags();
-    if (!model) {
-      model = await LocalStorage.getItem(`${command}_model_generate`);
-      if (!model) {
-        throw ErrorRaycastModelNotConfiguredOnLocalStorage;
-      }
-    }
-    const m = tags.models.find((t) => t.name === model);
-    if (!m) throw new ErrorOllamaModelNotInstalled("Model not installed", model);
-    if (
-      ModelGenerateFamilies.current &&
-      !m.details.families.find((f) => (ModelGenerateFamilies.current as string[]).find((fq) => f === fq))
-    ) {
-      if (!m.details.families.find((f) => f === "clip"))
-        throw new ErrorOllamaModelNotMultimodal("Model not multimodal", model);
-    }
-    return m;
   }
 
   /**
@@ -283,7 +260,7 @@ export function AnswerView(props: props): JSX.Element {
       <SetModelView
         Command={props.command}
         ShowModelView={setShowSelectModelForm}
-        Families={ModelGenerateFamilies.current}
+        Families={props.image ? ["clip"] : undefined}
       />
     );
 

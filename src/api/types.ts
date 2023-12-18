@@ -127,13 +127,9 @@ export interface OllamaApiGenerateOptionsRequestBody {
   num_thread?: number;
 }
 
-export interface OllamaApiGenerateResponse {
+export interface OllamaApiGenerateStats {
   model: string;
   created_at: string;
-  response: string;
-
-  done: boolean;
-  context?: number[];
 
   total_duration?: number;
   load_duration?: number;
@@ -141,21 +137,17 @@ export interface OllamaApiGenerateResponse {
   prompt_eval_duration?: number;
   eval_count?: number;
   eval_duration?: number;
+
+  done: boolean;
 }
 
-export interface OllamaApiChatResponse {
-  model: string;
-  created_at: string;
-  message: OllamaApiChatMessage;
+export interface OllamaApiGenerateResponse extends OllamaApiGenerateStats {
+  response: string;
+  context?: number[];
+}
 
-  done: boolean;
-
-  total_duration?: number;
-  load_duration?: number;
-  prompt_eval_count?: number;
-  prompt_eval_duration?: number;
-  eval_count?: number;
-  eval_duration?: number;
+export interface OllamaApiChatResponse extends OllamaApiGenerateStats {
+  message?: OllamaApiChatMessage;
 }
 
 export interface OllamaApiEmbeddingsResponse {
@@ -177,6 +169,10 @@ export interface RaycastImage {
   path: string;
   html: string;
   base64: string;
+}
+
+export interface RaycastChatMessage extends OllamaApiGenerateStats {
+  messages: OllamaApiChatMessage[];
 }
 
 export interface DocumentLoaderFiles {
@@ -206,4 +202,9 @@ export enum Chains {
 
 export enum PromptTags {
   FILE = "/file",
+}
+
+export enum ModelType {
+  GENERATE = "generate",
+  EMBEDDING = "embedding",
 }

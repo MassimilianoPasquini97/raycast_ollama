@@ -47,6 +47,14 @@
       "required": false,
       "title": "Enable Input Source Fallback",
       "label": "Check for enable input fallback"
+    },
+    {
+      "name": "ollamaChatHistoryMessagesNumber",
+      "description": "Number of last messages to use as memory",
+      "type": "textfield",
+      "required": false,
+      "title": "Chat Memory Messages",
+      "default": "20"
     }
   ],
   "commands": [
