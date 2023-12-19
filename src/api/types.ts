@@ -172,6 +172,9 @@ export interface RaycastImage {
 }
 
 export interface RaycastChatMessage extends OllamaApiGenerateStats {
+  tags?: string[];
+  sources?: string[];
+
   messages: OllamaApiChatMessage[];
 }
 

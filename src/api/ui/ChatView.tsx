@@ -177,6 +177,8 @@ export function ChatView(): JSX.Element {
           prevState.push({
             model: ModelGenerate ? ModelGenerate.name : "",
             created_at: "",
+            tags: tags.length > 0 ? tags : undefined,
+            sources: docs ? [...new Set(docs.map((d) => d.metadata.source))] : undefined,
             messages: [
               { role: "user", content: prompt },
               { role: "assistant", content: "" },
@@ -380,6 +382,21 @@ export function ChatView(): JSX.Element {
       <Detail.Metadata>
         <Detail.Metadata.Label title="Model" text={props.message.model} />
         <Detail.Metadata.Separator />
+        {props.message.tags && (
+          <Detail.Metadata.TagList title="Tags">
+            {props.message.tags.map((tag) => (
+              <Detail.Metadata.TagList.Item text={tag} />
+            ))}
+          </Detail.Metadata.TagList>
+        )}
+        {props.message.sources && (
+          <Detail.Metadata.TagList title="Sources">
+            {props.message.sources.map((source) => (
+              <Detail.Metadata.TagList.Item text={source} />
+            ))}
+          </Detail.Metadata.TagList>
+        )}
+        {props.message.tags && <Detail.Metadata.Separator />}
         {props.message.eval_count && props.message.eval_duration ? (
           <Detail.Metadata.Label
             title="Generation Speed"
