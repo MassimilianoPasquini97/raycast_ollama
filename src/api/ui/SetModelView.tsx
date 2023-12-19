@@ -1,4 +1,4 @@
-import { OllamaApiTags } from "../ollama";
+import { OllamaApiTags, OllamaApiVersion } from "../ollama";
 import {
   Form,
   ActionPanel,
@@ -12,7 +12,7 @@ import {
 } from "@raycast/api";
 import React from "react";
 import { usePromise } from "@raycast/utils";
-import { GetModel } from "../common";
+import { GetModel, VerifyOllamaVersion } from "../common";
 import { ModelType, OllamaApiTagsResponseModel } from "../types";
 
 interface props {
@@ -35,6 +35,7 @@ interface FormData {
  * @returns {JSX.Element} Raycast SetModelView.
  */
 export function SetModelView(props: props): JSX.Element {
+  const { data: OllamaVersion, isLoading: IsLoadingOllamaVersion } = usePromise(OllamaApiVersion);
   const { isLoading: isLoadingInstalledModels, data: InstalledModels } = usePromise(
     getInstalledModels,
     [props.Families],
@@ -51,24 +52,16 @@ export function SetModelView(props: props): JSX.Element {
       },
     }
   );
-  const { isLoading: isLoadingEmbeddingModel, data: EmbeddingModel } = usePromise(
-    GetModel,
-    [props.Command, false, undefined, ModelType.EMBEDDING],
-    {
-      onError: () => {
-        return;
-      },
-    }
-  );
-  const { isLoading: isLoadingImageModel, data: ImageModel } = usePromise(
-    GetModel,
-    [props.Command, true, undefined, ModelType.IMAGE],
-    {
-      onError: () => {
-        return;
-      },
-    }
-  );
+  const { data: EmbeddingModel } = usePromise(GetModel, [props.Command, false, undefined, ModelType.EMBEDDING], {
+    onError: () => {
+      return;
+    },
+  });
+  const { data: ImageModel } = usePromise(GetModel, [props.Command, true, undefined, ModelType.IMAGE], {
+    onError: () => {
+      return;
+    },
+  });
   const [ShowEmbeddingModel, SetShowEmbeddingModel]: [boolean, React.Dispatch<React.SetStateAction<boolean>>] =
     React.useState(false);
   const [ShowImageModel, SetShowImageModel]: [boolean, React.Dispatch<React.SetStateAction<boolean>>] =
@@ -186,7 +179,13 @@ export function SetModelView(props: props): JSX.Element {
       {!isLoadingInstalledModels ? <FormModelGenerate models={InstalledModels} /> : null}
       {!isLoadingInstalledModels && props.Command === "chat" ? FormEmbedding : null}
       {!isLoadingInstalledModels && ShowEmbeddingModel ? <FormModelEmbedding models={InstalledModels} /> : null}
-      {!isLoadingInstalledModels && props.Command === "chat" ? FormImage : null}
+      {!isLoadingInstalledModels &&
+      !IsLoadingOllamaVersion &&
+      OllamaVersion &&
+      VerifyOllamaVersion(OllamaVersion, "0.1.15") &&
+      props.Command === "chat"
+        ? FormImage
+        : null}
       {!isLoadingInstalledModels && ShowImageModel ? <FormModelImage models={InstalledModels} /> : null}
     </Form>
   );

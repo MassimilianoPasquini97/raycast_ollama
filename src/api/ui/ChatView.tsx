@@ -29,7 +29,9 @@ import {
   GetChatHistoryKeys,
   DeleteChatHistory,
   GetImage,
+  VerifyOllamaVersion,
 } from "../common";
+import { OllamaApiVersion } from "../ollama";
 
 const preferences = getPreferenceValues();
 
@@ -38,6 +40,9 @@ const preferences = getPreferenceValues();
  * @returns {JSX.Element} Raycast Chat View.
  */
 export function ChatView(): JSX.Element {
+  const { data: OllamaVersion, isLoading: IsLoadingOllamaVersion } = usePromise(OllamaApiVersion, [], {
+    onError: HandleError,
+  });
   const {
     data: ModelGenerate,
     revalidate: RevalidateModelGenerate,
@@ -139,7 +144,15 @@ export function ChatView(): JSX.Element {
       let docs: Document<Record<string, any>>[] | undefined = undefined;
       let images: RaycastImage[] | undefined = undefined;
 
-      if (tags.length > 0 && tags.find((t) => t === PromptTags.IMAGE)) {
+      if (OllamaVersion && tags.length > 0 && tags.find((t) => t === PromptTags.IMAGE)) {
+        if (!VerifyOllamaVersion(OllamaVersion, "0.1.15")) {
+          await showToast({
+            style: Toast.Style.Failure,
+            title: "Ollama API version is outdated, at least v0.1.15 is required for this feature.",
+          });
+          setLoading(false);
+          return;
+        }
         if (!ModelImage) {
           await showToast({ style: Toast.Style.Failure, title: "No Image Model is selected." });
           setLoading(false);
@@ -379,7 +392,9 @@ export function ChatView(): JSX.Element {
     return (
       <ActionPanel>
         <ActionPanel.Section title="Ollama">
-          {query && ModelGenerate && <Action title="Get Answer" icon={Icon.SpeechBubbleActive} onAction={Inference} />}
+          {OllamaVersion && query && ModelGenerate && (
+            <Action title="Get Answer" icon={Icon.SpeechBubbleActive} onAction={Inference} />
+          )}
           {props.message && (
             <Action.CopyToClipboard
               title="Copy Question"
@@ -503,6 +518,7 @@ export function ChatView(): JSX.Element {
     <List
       isLoading={
         loading ||
+        IsLoadingOllamaVersion ||
         IsLoadingModelGenerate ||
         IsLoadingModelEmbedding ||
         IsLoadingModelImage ||
@@ -517,6 +533,7 @@ export function ChatView(): JSX.Element {
       actions={
         !(
           loading ||
+          IsLoadingOllamaVersion ||
           IsLoadingModelGenerate ||
           IsLoadingModelEmbedding ||
           IsLoadingModelImage ||

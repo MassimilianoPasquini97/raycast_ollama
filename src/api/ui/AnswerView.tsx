@@ -13,13 +13,13 @@ import {
   ErrorRaycastModelNotConfiguredOnLocalStorage,
   ErrorOllamaModelNotMultimodal,
 } from "../errors";
-import { OllamaApiGenerate, OllamaApiTags } from "../ollama";
+import { OllamaApiGenerate, OllamaApiVersion } from "../ollama";
 import { SetModelView } from "./SetModelView";
 import * as React from "react";
 import { Action, ActionPanel, Detail, Icon, LocalStorage, Toast, showToast } from "@raycast/api";
 import { getSelectedText, Clipboard, getPreferenceValues } from "@raycast/api";
 import { usePromise } from "@raycast/utils";
-import { GetImage, GetModel } from "../common";
+import { GetImage, GetModel, VerifyOllamaVersion } from "../common";
 
 const preferences = getPreferenceValues();
 
@@ -88,6 +88,9 @@ interface props {
  * @returns {JSX.Element} Raycast Answer View.
  */
 export function AnswerView(props: props): JSX.Element {
+  const { data: OllamaVersion, isLoading: IsLoadingOllamaVersion } = usePromise(OllamaApiVersion, [], {
+    onError: HandleError,
+  });
   const {
     data: ModelGenerate,
     revalidate: RevalidateModelGenerate,
@@ -175,19 +178,26 @@ export function AnswerView(props: props): JSX.Element {
       setAnswer("");
       switch (props.image) {
         case true: {
-          const image = await GetImage().catch(async (err) => {
-            showToast({ style: Toast.Style.Failure, title: err });
-            return [];
-          });
-          if (image.length > 0) {
-            image.forEach((i) => {
-              setImageView((prevState) => prevState + i.html);
+          if (OllamaVersion && VerifyOllamaVersion(OllamaVersion, "0.1.15")) {
+            const image = await GetImage().catch(async (err) => {
+              showToast({ style: Toast.Style.Failure, title: err });
+              return [];
             });
-            setImageView((prevState) => prevState + "\n");
-            Inference(
-              " ",
-              image.map((i) => i.base64)
-            );
+            if (image.length > 0) {
+              image.forEach((i) => {
+                setImageView((prevState) => prevState + i.html);
+              });
+              setImageView((prevState) => prevState + "\n");
+              Inference(
+                " ",
+                image.map((i) => i.base64)
+              );
+            }
+          } else {
+            await showToast({
+              style: Toast.Style.Failure,
+              title: "Ollama API version is outdated, at least v0.1.15 is required for this feature.",
+            });
           }
           break;
         }
@@ -348,7 +358,7 @@ export function AnswerView(props: props): JSX.Element {
   return (
     <Detail
       markdown={`${imageView}${answer}`}
-      isLoading={loading || IsLoadingModelGenerate}
+      isLoading={loading || IsLoadingModelGenerate || IsLoadingOllamaVersion}
       actions={!loading && !IsLoadingModelGenerate && <AnswerAction />}
       metadata={
         !loading &&

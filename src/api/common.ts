@@ -19,6 +19,18 @@ import {
 } from "./errors";
 
 /**
+ * Verify Ollama Installed Version.
+ * @param {string} installed - Installed version given by '/api/version' route.
+ * @param {string} min - Minimum version required.
+ * @returns {boolean} Return True if installed version is greater or equal than minimum version.
+ */
+export function VerifyOllamaVersion(installed: string, min: string): boolean {
+  const iv = installed.split(".");
+  const mv = min.split(".");
+  return !iv.find((value, index) => Number(value) < Number(mv[index]));
+}
+
+/**
  * Get Image from web.
  * @param {string} url
  * @returns {RaycastImage}

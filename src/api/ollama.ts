@@ -8,6 +8,7 @@ import {
   OllamaApiShowModelfile,
   OllamaApiChatRequestBody,
   OllamaApiChatResponse,
+  OllamaApiVersionResponse,
 } from "./types";
 import {
   ErrorOllamaCustomModel,
@@ -15,6 +16,7 @@ import {
   ErrorOllamaNotInstalledOrRunning,
   ErrorOllamaModelRegistryUnreachable,
   MessageOllamaModelNotInstalled,
+  ErrorOllamaVersion,
 } from "./errors";
 import fetch from "node-fetch";
 import { EventEmitter } from "stream";
@@ -72,6 +74,28 @@ export async function OllamaAvailableModelsOnRegistry(): Promise<string[]> {
     });
 
   return data;
+}
+
+/**
+ * Get Ollama Version.
+ * @returns {Promise<string>} Ollama Version.
+ */
+export async function OllamaApiVersion(): Promise<string> {
+  const host = parseOllamaHostUrl();
+  const url = `${host}api/version`;
+
+  const data = await fetch(url)
+    .then((response) => response.json())
+    .then((output): OllamaApiVersionResponse => {
+      return output as OllamaApiVersionResponse;
+    })
+    .catch((err) => {
+      console.error(err);
+      if (err.type && err.type === "ECONNREFUSED") throw ErrorOllamaNotInstalledOrRunning;
+      throw ErrorOllamaVersion;
+    });
+
+  return data.version;
 }
 
 /**

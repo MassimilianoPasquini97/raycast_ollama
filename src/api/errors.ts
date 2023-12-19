@@ -6,6 +6,7 @@ export const ErrorRaycastModelNotConfiguredOnLocalStorage = new Error(
 );
 export const ErrorRaycastApiNoTextSelected = new Error("You Need to Select a Text for This Command.");
 export const ErrorRaycastApiNoTextCopied = new Error("You Need to Copy Text on Clipboard for This Command.");
+export const ErrorOllamaVersion = new Error("Ollama version not supported, update at least at v0.1.14.");
 export const ErrorOllamaNotInstalledOrRunning = new Error("Verify Ollama is Installed and Currently Running.");
 export const ErrorOllamaModelRegistryUnreachable = new Error("Ollama Models Registry is Unreachable.");
 export const MessageOllamaModelNotInstalled = new Error("Model is not Installed.");

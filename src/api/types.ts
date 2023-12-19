@@ -1,3 +1,7 @@
+export interface OllamaApiVersionResponse {
+  version: string;
+}
+
 export interface OllamaApiTagsResponse {
   models: OllamaApiTagsResponseModel[];
 }
