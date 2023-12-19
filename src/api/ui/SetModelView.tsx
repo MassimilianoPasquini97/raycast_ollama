@@ -176,17 +176,21 @@ export function SetModelView(props: props): JSX.Element {
         </ActionPanel>
       }
     >
-      {!isLoadingInstalledModels ? <FormModelGenerate models={InstalledModels} /> : null}
-      {!isLoadingInstalledModels && props.Command === "chat" ? FormEmbedding : null}
-      {!isLoadingInstalledModels && ShowEmbeddingModel ? <FormModelEmbedding models={InstalledModels} /> : null}
+      {!isLoadingInstalledModels && InstalledModels ? <FormModelGenerate models={InstalledModels} /> : null}
+      {!isLoadingInstalledModels && InstalledModels && props.Command === "chat" ? FormEmbedding : null}
+      {!isLoadingInstalledModels && InstalledModels && ShowEmbeddingModel ? (
+        <FormModelEmbedding models={InstalledModels} />
+      ) : null}
       {!isLoadingInstalledModels &&
+      InstalledModels &&
+      InstalledModels.filter((f) => (f.details.families ? f.details.families.find((f) => f === "clip") : false)) &&
       !IsLoadingOllamaVersion &&
       OllamaVersion &&
       VerifyOllamaVersion(OllamaVersion, "0.1.15") &&
       props.Command === "chat"
         ? FormImage
         : null}
-      {!isLoadingInstalledModels && ShowImageModel ? <FormModelImage models={InstalledModels} /> : null}
+      {ShowImageModel ? <FormModelImage models={InstalledModels} /> : null}
     </Form>
   );
 }
