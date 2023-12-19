@@ -1,4 +1,12 @@
-import { Chains, ModelType, OllamaApiChatMessage, OllamaApiShowModelfile, RaycastChatMessage } from "../types";
+import {
+  Chains,
+  ModelType,
+  OllamaApiChatMessage,
+  OllamaApiShowModelfile,
+  PromptTags,
+  RaycastChatMessage,
+  RaycastImage,
+} from "../types";
 import { ErrorOllamaCustomModel, ErrorOllamaModelNotInstalled } from "../errors";
 import { SetModelView } from "./SetModelView";
 import * as React from "react";
@@ -20,6 +28,7 @@ import {
   SaveChatToHistory,
   GetChatHistoryKeys,
   DeleteChatHistory,
+  GetImage,
 } from "../common";
 
 const preferences = getPreferenceValues();
@@ -49,6 +58,15 @@ export function ChatView(): JSX.Element {
     revalidate: RevalidateModelEmbedding,
     isLoading: IsLoadingModelEmbedding,
   } = usePromise(GetModel, ["chat", false, undefined, ModelType.EMBEDDING], {
+    onError: () => {
+      return;
+    },
+  });
+  const {
+    data: ModelImage,
+    revalidate: RevalidateModelImage,
+    isLoading: IsLoadingModelImage,
+  } = usePromise(GetModel, ["chat", false, undefined, ModelType.IMAGE], {
     onError: () => {
       return;
     },
@@ -119,8 +137,26 @@ export function ChatView(): JSX.Element {
       setQuery("");
 
       let docs: Document<Record<string, any>>[] | undefined = undefined;
+      let images: RaycastImage[] | undefined = undefined;
 
-      if (tags.length > 0) {
+      if (tags.length > 0 && tags.find((t) => t === PromptTags.IMAGE)) {
+        if (!ModelImage) {
+          await showToast({ style: Toast.Style.Failure, title: "No Image Model is selected." });
+          setLoading(false);
+          setShowSelectModelForm(true);
+          return;
+        }
+        images = await GetImage().catch(async (err) => {
+          showToast({ style: Toast.Style.Failure, title: err.message });
+          return undefined;
+        });
+        if (!images) {
+          setLoading(false);
+          return;
+        }
+      }
+
+      if (tags.length > 0 && tags.find((t) => t !== PromptTags.IMAGE)) {
         await showToast({ style: Toast.Style.Animated, title: "📄 Loading Documents." });
 
         let DocsNumber: number | undefined;
@@ -159,17 +195,49 @@ export function ChatView(): JSX.Element {
       if (history.length === 0) history = undefined;
 
       let stream: EventEmitter | undefined;
-      if (docs) {
+      if (docs && docs.length > 0) {
         if (ChainPreferences === undefined || ChainPreferences.type === Chains.STUFF) {
-          await showToast({ style: Toast.Style.Animated, title: "🧠 Inference with Documents." });
-          if (ModelGenerate) stream = await loadQAStuffChain(prompt, ModelGenerate.name, docs, history);
+          if (ModelImage && images) {
+            await showToast({ style: Toast.Style.Animated, title: "🧠 Inference with Documents and Images." });
+            stream = await loadQAStuffChain(
+              prompt,
+              ModelImage.name,
+              docs,
+              history,
+              images.map((i) => i.base64)
+            );
+          } else if (ModelGenerate) {
+            await showToast({ style: Toast.Style.Animated, title: "🧠 Inference with Documents." });
+            stream = await loadQAStuffChain(prompt, ModelGenerate.name, docs, history);
+          }
         } else if (ChainPreferences.type === Chains.REFINE) {
-          await showToast({ style: Toast.Style.Animated, title: "🧠 Inference with Documents." });
-          if (ModelGenerate) stream = await loadQARefineChain(prompt, ModelGenerate.name, docs, history);
+          if (ModelImage && images) {
+            await showToast({ style: Toast.Style.Animated, title: "🧠 Inference with Documents and Images." });
+            stream = await loadQARefineChain(
+              prompt,
+              ModelImage.name,
+              docs,
+              history,
+              images.map((i) => i.base64)
+            );
+          } else if (ModelGenerate) {
+            await showToast({ style: Toast.Style.Animated, title: "🧠 Inference with Documents." });
+            stream = await loadQARefineChain(prompt, ModelGenerate.name, docs, history);
+          }
         }
       } else {
-        await showToast({ style: Toast.Style.Animated, title: "🧠 Inference." });
-        if (ModelGenerate) stream = await LLMChain(prompt, ModelGenerate.name, history);
+        if (ModelImage && images) {
+          await showToast({ style: Toast.Style.Animated, title: "🧠 Inference with Images." });
+          stream = await LLMChain(
+            prompt,
+            ModelImage.name,
+            history,
+            images.map((i) => i.base64)
+          );
+        } else if (ModelGenerate) {
+          await showToast({ style: Toast.Style.Animated, title: "🧠 Inference." });
+          stream = await LLMChain(prompt, ModelGenerate.name, history);
+        }
       }
 
       if (stream) {
@@ -179,6 +247,7 @@ export function ChatView(): JSX.Element {
             created_at: "",
             tags: tags.length > 0 ? tags : undefined,
             sources: docs ? [...new Set(docs.map((d) => d.metadata.source))] : undefined,
+            images: images,
             messages: [
               { role: "user", content: prompt },
               { role: "assistant", content: "" },
@@ -272,6 +341,7 @@ export function ChatView(): JSX.Element {
     if (!showSelectModelForm) {
       RevalidateModelGenerate();
       RevalidateModelEmbedding();
+      RevalidateModelImage();
       RevalidateChainPreferences();
     }
   }, [showSelectModelForm]);
@@ -382,51 +452,49 @@ export function ChatView(): JSX.Element {
       <Detail.Metadata>
         <Detail.Metadata.Label title="Model" text={props.message.model} />
         <Detail.Metadata.Separator />
-        {props.message.tags && (
+        {props.message.tags && props.message.tags.length > 0 && (
           <Detail.Metadata.TagList title="Tags">
             {props.message.tags.map((tag) => (
               <Detail.Metadata.TagList.Item text={tag} />
             ))}
           </Detail.Metadata.TagList>
         )}
-        {props.message.sources && (
+        {props.message.sources && props.message.sources.length > 0 && (
           <Detail.Metadata.TagList title="Sources">
             {props.message.sources.map((source) => (
               <Detail.Metadata.TagList.Item text={source} />
             ))}
           </Detail.Metadata.TagList>
         )}
-        {props.message.tags && <Detail.Metadata.Separator />}
-        {props.message.eval_count && props.message.eval_duration ? (
+        {props.message.tags || (props.message.sources && <Detail.Metadata.Separator />)}
+        {props.message.eval_count && props.message.eval_duration && (
           <Detail.Metadata.Label
             title="Generation Speed"
             text={`${(props.message.eval_count / (props.message.eval_duration / 1e9)).toFixed(2)} token/s`}
           />
-        ) : null}
-        {props.message.total_duration ? (
+        )}
+        {props.message.total_duration && (
           <Detail.Metadata.Label
             title="Total Inference Duration"
             text={`${(props.message.total_duration / 1e9).toFixed(2)}s`}
           />
-        ) : null}
-        {props.message.load_duration ? (
+        )}
+        {props.message.load_duration && (
           <Detail.Metadata.Label title="Load Duration" text={`${(props.message.load_duration / 1e9).toFixed(2)}s`} />
-        ) : null}
-        {props.message.prompt_eval_count ? (
+        )}
+        {props.message.prompt_eval_count && (
           <Detail.Metadata.Label title="Prompt Eval Count" text={`${props.message.prompt_eval_count}`} />
-        ) : null}
-        {props.message.prompt_eval_duration ? (
+        )}
+        {props.message.prompt_eval_duration && (
           <Detail.Metadata.Label
             title="Prompt Eval Duration"
             text={`${(props.message.prompt_eval_duration / 1e9).toFixed(2)}s`}
           />
-        ) : null}
-        {props.message.eval_count ? (
-          <Detail.Metadata.Label title="Eval Count" text={`${props.message.eval_count}`} />
-        ) : null}
-        {props.message.eval_duration ? (
+        )}
+        {props.message.eval_count && <Detail.Metadata.Label title="Eval Count" text={`${props.message.eval_count}`} />}
+        {props.message.eval_duration && (
           <Detail.Metadata.Label title="Eval Duration" text={`${(props.message.eval_duration / 1e9).toFixed(2)}s`} />
-        ) : null}
+        )}
       </Detail.Metadata>
     );
   }
@@ -437,6 +505,7 @@ export function ChatView(): JSX.Element {
         loading ||
         IsLoadingModelGenerate ||
         IsLoadingModelEmbedding ||
+        IsLoadingModelImage ||
         IsLoadingChainPreferences ||
         IsLoadingChatName ||
         IsLoadingChatHistoryKeys
@@ -450,6 +519,7 @@ export function ChatView(): JSX.Element {
           loading ||
           IsLoadingModelGenerate ||
           IsLoadingModelEmbedding ||
+          IsLoadingModelImage ||
           IsLoadingChainPreferences ||
           IsLoadingChatName ||
           IsLoadingChatHistoryKeys
@@ -476,7 +546,7 @@ export function ChatView(): JSX.Element {
             actions={!loading && <ActionMessage message={item} />}
             detail={
               <List.Item.Detail
-                markdown={`${item.messages[1].content}`}
+                markdown={`${item.images ? `${item.images.map((i) => i.html)}\n` : ""}${item.messages[1].content}`}
                 metadata={showAnswerMetadata && item.done && <DetailMetadataMessage message={item} />}
               />
             }

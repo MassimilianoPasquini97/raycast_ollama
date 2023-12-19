@@ -174,6 +174,7 @@ export interface RaycastImage {
 export interface RaycastChatMessage extends OllamaApiGenerateStats {
   tags?: string[];
   sources?: string[];
+  images?: RaycastImage[];
 
   messages: OllamaApiChatMessage[];
 }
@@ -205,9 +206,11 @@ export enum Chains {
 
 export enum PromptTags {
   FILE = "/file",
+  IMAGE = "/image",
 }
 
 export enum ModelType {
   GENERATE = "generate",
   EMBEDDING = "embedding",
+  IMAGE = "image",
 }

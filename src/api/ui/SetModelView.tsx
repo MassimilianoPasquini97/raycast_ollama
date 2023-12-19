@@ -10,9 +10,10 @@ import {
   launchCommand,
   LaunchType,
 } from "@raycast/api";
-import { OllamaApiTagsResponse } from "../types";
 import React from "react";
 import { usePromise } from "@raycast/utils";
+import { GetModel } from "../common";
+import { ModelType, OllamaApiTagsResponseModel } from "../types";
 
 interface props {
   Command: string;
@@ -22,8 +23,10 @@ interface props {
 
 interface FormData {
   ShowModelEmbedding: boolean;
+  ShowModelImage: boolean;
   ModelGenerate: string | undefined;
   ModelEmbedding: string | undefined;
+  ModelImage: string | undefined;
 }
 
 /**
@@ -48,8 +51,27 @@ export function SetModelView(props: props): JSX.Element {
       },
     }
   );
-  const { isLoading: isLoadingEmbeddingModel, data: EmbeddingModel } = usePromise(GetModelEmbeddingFromLocalStorage);
+  const { isLoading: isLoadingEmbeddingModel, data: EmbeddingModel } = usePromise(
+    GetModel,
+    [props.Command, false, undefined, ModelType.EMBEDDING],
+    {
+      onError: () => {
+        return;
+      },
+    }
+  );
+  const { isLoading: isLoadingImageModel, data: ImageModel } = usePromise(
+    GetModel,
+    [props.Command, true, undefined, ModelType.IMAGE],
+    {
+      onError: () => {
+        return;
+      },
+    }
+  );
   const [ShowEmbeddingModel, SetShowEmbeddingModel]: [boolean, React.Dispatch<React.SetStateAction<boolean>>] =
+    React.useState(false);
+  const [ShowImageModel, SetShowImageModel]: [boolean, React.Dispatch<React.SetStateAction<boolean>>] =
     React.useState(false);
 
   /**
@@ -63,25 +85,12 @@ export function SetModelView(props: props): JSX.Element {
     } else {
       LocalStorage.removeItem(`${props.Command}_model_embedding`);
     }
+    if (data.ShowModelImage && data.ModelImage) {
+      LocalStorage.setItem(`${props.Command}_model_image`, data.ModelImage);
+    } else {
+      LocalStorage.removeItem(`${props.Command}_model_image`);
+    }
     props.ShowModelView(false);
-  }
-
-  /**
-   * Get Model for Generate from LocalStorage.
-   * @returns {Promise<string>} Model generate.
-   */
-  async function GetModelGenerateFromLocalStorage(): Promise<string> {
-    const m = await LocalStorage.getItem(`${props.Command}_model_generate`);
-    return m as string;
-  }
-
-  /**
-   * Get Model for Embedding from LocalStorage.
-   * @returns {Promise<string>} Model embedding.
-   */
-  async function GetModelEmbeddingFromLocalStorage(): Promise<string> {
-    const m = await LocalStorage.getItem(`${props.Command}_model_embedding`);
-    return m as string;
   }
 
   /**
@@ -89,21 +98,20 @@ export function SetModelView(props: props): JSX.Element {
    * @param {string[]} families - Filter Installed Models by Families.
    * @returns {Promise<string[]>} Installed models as an array of string.
    */
-  async function getInstalledModels(families: string[] | undefined): Promise<string[]> {
+  async function getInstalledModels(families: string[] | undefined): Promise<OllamaApiTagsResponseModel[]> {
     const InstalledModels = await OllamaApiTags();
     if (families)
-      return InstalledModels.models
-        .filter((t) => {
-          if (!t.details.families) return false;
-          if (t.details.families.find((f) => families.find((fq) => f === fq))) return true;
-        })
-        .map((t) => t.name);
-    return InstalledModels.models.map((t) => t.name);
+      return InstalledModels.models.filter((t) => {
+        if (!t.details.families) return false;
+        if (t.details.families.find((f) => families.find((fq) => f === fq))) return true;
+      });
+    return InstalledModels.models;
   }
 
   React.useEffect(() => {
     if (EmbeddingModel) SetShowEmbeddingModel(true);
-  }, [EmbeddingModel]);
+    if (ImageModel) SetShowImageModel(true);
+  }, [EmbeddingModel, ImageModel]);
 
   const FormEmbedding = (
     <Form.Checkbox
@@ -115,25 +123,51 @@ export function SetModelView(props: props): JSX.Element {
     />
   );
 
-  const FormModelGenerate = (
-    <Form.Dropdown id="ModelGenerate" title="Model" storeValue={true}>
-      {!isLoadingInstalledModels && InstalledModels
-        ? InstalledModels.map((model) => {
-            return <Form.Dropdown.Item value={model} title={model} key={model} />;
-          })
-        : null}
-    </Form.Dropdown>
+  const FormImage = (
+    <Form.Checkbox
+      id="ShowModelImage"
+      title="Image"
+      label="Use Multimodal Model for Image"
+      onChange={SetShowImageModel}
+      storeValue={true}
+    />
   );
 
-  const FormModelEmbedding = (
-    <Form.Dropdown id="ModelEmbedding" title="Model for Embedding" storeValue={true}>
-      {!isLoadingEmbeddingModel && InstalledModels
-        ? InstalledModels.map((model) => {
-            return <Form.Dropdown.Item value={model} title={model} key={model} />;
-          })
-        : null}
-    </Form.Dropdown>
-  );
+  function FormModelGenerate(props: { models: OllamaApiTagsResponseModel[] | undefined }): JSX.Element {
+    return (
+      <Form.Dropdown id="ModelGenerate" title="Model" storeValue={true}>
+        {props.models
+          ? props.models.map((model) => {
+              return <Form.Dropdown.Item value={model.name} title={model.name} key={model.name} />;
+            })
+          : null}
+      </Form.Dropdown>
+    );
+  }
+  function FormModelEmbedding(props: { models: OllamaApiTagsResponseModel[] | undefined }): JSX.Element {
+    return (
+      <Form.Dropdown id="ModelEmbedding" title="Model for Embedding" storeValue={true}>
+        {props.models
+          ? props.models.map((model) => {
+              return <Form.Dropdown.Item value={model.name} title={model.name} key={model.name} />;
+            })
+          : null}
+      </Form.Dropdown>
+    );
+  }
+  function FormModelImage(props: { models: OllamaApiTagsResponseModel[] | undefined }): JSX.Element {
+    return (
+      <Form.Dropdown id="ModelImage" title="Model for Image" storeValue={true}>
+        {props.models
+          ? props.models
+              .filter((f) => (f.details.families ? f.details.families.find((f) => f === "clip") : false))
+              .map((model) => {
+                return <Form.Dropdown.Item value={model.name} title={model.name} key={model.name} />;
+              })
+          : null}
+      </Form.Dropdown>
+    );
+  }
 
   return (
     <Form
@@ -149,9 +183,11 @@ export function SetModelView(props: props): JSX.Element {
         </ActionPanel>
       }
     >
-      {!isLoadingInstalledModels ? FormModelGenerate : null}
+      {!isLoadingInstalledModels ? <FormModelGenerate models={InstalledModels} /> : null}
       {!isLoadingInstalledModels && props.Command === "chat" ? FormEmbedding : null}
-      {!isLoadingInstalledModels && ShowEmbeddingModel ? FormModelEmbedding : null}
+      {!isLoadingInstalledModels && ShowEmbeddingModel ? <FormModelEmbedding models={InstalledModels} /> : null}
+      {!isLoadingInstalledModels && props.Command === "chat" ? FormImage : null}
+      {!isLoadingInstalledModels && ShowImageModel ? <FormModelImage models={InstalledModels} /> : null}
     </Form>
   );
 }

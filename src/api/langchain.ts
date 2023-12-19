@@ -240,10 +240,11 @@ export function GetTags(prompt: string): [string, PromptTags[]] {
 export async function LLMChain(
   prompt: string,
   model: string,
-  messages: OllamaApiChatMessage[] | undefined = undefined
+  messages: OllamaApiChatMessage[] | undefined = undefined,
+  images: string[] | undefined = undefined
 ): Promise<EventEmitter> {
-  if (messages) messages.push({ role: "user", content: prompt } as OllamaApiChatMessage);
-  else messages = [{ role: "user", content: prompt } as OllamaApiChatMessage];
+  if (messages) messages.push({ role: "user", content: prompt, images: images } as OllamaApiChatMessage);
+  else messages = [{ role: "user", content: prompt, images: images } as OllamaApiChatMessage];
   const body: OllamaApiChatRequestBody = {
     model: model,
     messages: messages,
@@ -263,7 +264,8 @@ export async function loadQARefineChain(
   prompt: string,
   model: string,
   docs: Document<Record<string, any>>[],
-  messages: OllamaApiChatMessage[] | undefined = undefined
+  messages: OllamaApiChatMessage[] | undefined = undefined,
+  images: string[] | undefined = undefined
 ): Promise<EventEmitter | undefined> {
   let LastResponse: string | undefined;
 
@@ -282,11 +284,15 @@ export async function loadQARefineChain(
       } else {
         if (messages) {
           messages.push({ role: "system", content: SystemPrompt } as OllamaApiChatMessage);
-          messages.push({ role: "user", content: `CONTEXT: ${doc.pageContent}` } as OllamaApiChatMessage);
+          messages.push({
+            role: "user",
+            content: `CONTEXT: ${doc.pageContent}`,
+            images: images,
+          } as OllamaApiChatMessage);
         } else {
           messages = [
             { role: "system", content: SystemPrompt } as OllamaApiChatMessage,
-            { role: "user", content: `CONTEXT: ${doc.pageContent}` } as OllamaApiChatMessage,
+            { role: "user", content: `CONTEXT: ${doc.pageContent}`, images: images } as OllamaApiChatMessage,
           ];
         }
         const body: OllamaApiChatRequestBody = {
@@ -320,16 +326,23 @@ export async function loadQAStuffChain(
   prompt: string,
   model: string,
   docs: Document<Record<string, any>>[],
-  messages: OllamaApiChatMessage[] | undefined = undefined
+  messages: OllamaApiChatMessage[] | undefined = undefined,
+  images: string[] | undefined = undefined
 ): Promise<EventEmitter> {
   let docsContents = "";
   docs.forEach((doc) => {
     docsContents += doc.pageContent + "\n\n";
   });
   if (messages) {
-    messages.push({ role: "user", content: `${prompt}\nCONTEXT: ${docsContents}` } as OllamaApiChatMessage);
+    messages.push({
+      role: "user",
+      content: `${prompt}\nCONTEXT: ${docsContents}`,
+      images: images,
+    } as OllamaApiChatMessage);
   } else {
-    messages = [{ role: "user", content: `${prompt}\nCONTEXT: ${docsContents}` } as OllamaApiChatMessage];
+    messages = [
+      { role: "user", content: `${prompt}\nCONTEXT: ${docsContents}`, images: images } as OllamaApiChatMessage,
+    ];
   }
   const body: OllamaApiChatRequestBody = {
     model: model,
