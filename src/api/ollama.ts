@@ -384,15 +384,21 @@ export async function OllamaApiGenerate(body: OllamaApiGenerateRequestBody): Pro
 
         body?.on("data", (chunk) => {
           if (chunk !== undefined) {
+            let json: OllamaApiGenerateResponse | undefined;
             const buffer = Buffer.from(chunk);
-            const json: OllamaApiGenerateResponse = JSON.parse(buffer.toString());
-            switch (json.done) {
-              case false:
-                e.emit("data", json.response);
-                break;
-              case true:
-                e.emit("done", json);
+            try {
+              json = JSON.parse(buffer.toString());
+            } catch (err) {
+              console.error(err);
             }
+            if (json)
+              switch (json.done) {
+                case false:
+                  e.emit("data", json.response);
+                  break;
+                case true:
+                  e.emit("done", json);
+              }
           }
         });
 
@@ -444,15 +450,21 @@ export async function OllamaApiChat(body: OllamaApiChatRequestBody): Promise<Eve
 
         body?.on("data", (chunk) => {
           if (chunk !== undefined) {
+            let json: OllamaApiChatResponse | undefined;
             const buffer = Buffer.from(chunk);
-            const json: OllamaApiChatResponse = JSON.parse(buffer.toString());
-            switch (json.done) {
-              case false:
-                json.message && e.emit("data", json.message.content);
-                break;
-              case true:
-                e.emit("done", json);
+            try {
+              json = JSON.parse(buffer.toString());
+            } catch (err) {
+              console.error(err);
             }
+            if (json)
+              switch (json.done) {
+                case false:
+                  json.message && e.emit("data", json.message.content);
+                  break;
+                case true:
+                  e.emit("done", json);
+              }
           }
         });
 
