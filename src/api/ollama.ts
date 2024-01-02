@@ -327,17 +327,23 @@ export async function OllamaApiPull(model: string): Promise<EventEmitter> {
 
         body?.on("data", (chunk) => {
           if (chunk !== undefined) {
+            let json: OllamaApiPullResponse | undefined;
             const buffer = Buffer.from(chunk);
-            const json: OllamaApiPullResponse = JSON.parse(buffer.toString());
-            if (json.total && json.completed) {
-              e.emit("downloading", json.completed / json.total);
-            } else if (json.status === "success") {
-              e.emit("done", "Download completed");
-            } else if (json.error) {
-              e.emit("error", json.error);
-            } else {
-              e.emit("message", json.status);
+            try {
+              json = JSON.parse(buffer.toString());
+            } catch (err) {
+              console.error(err);
             }
+            if (json)
+              if (json.total && json.completed) {
+                e.emit("downloading", json.completed / json.total);
+              } else if (json.status === "success") {
+                e.emit("done", "Download completed");
+              } else if (json.error) {
+                e.emit("error", json.error);
+              } else {
+                e.emit("message", json.status);
+              }
           }
         });
 
