@@ -68,10 +68,14 @@ export function AnswerView(props: props): JSX.Element {
       err instanceof ErrorOllamaModelNotMultimodal ||
       err === ErrorRaycastModelNotConfiguredOnLocalStorage
     ) {
-      if (err instanceof ErrorOllamaModelNotInstalled || err instanceof ErrorOllamaModelNotMultimodal)
-        await showToast({ style: Toast.Style.Failure, title: err.message, message: err.suggest });
-      if (err === ErrorRaycastModelNotConfiguredOnLocalStorage)
-        await showToast({ style: Toast.Style.Failure, title: err.message });
+      await showToast({
+        style: Toast.Style.Failure,
+        title: err.message,
+        message:
+          err instanceof ErrorOllamaModelNotInstalled || err instanceof ErrorOllamaModelNotMultimodal
+            ? err.suggest
+            : undefined,
+      });
       if (!props.model) setShowSelectModelForm(true);
       return;
     } else if (err instanceof ErrorOllamaCustomModel) {

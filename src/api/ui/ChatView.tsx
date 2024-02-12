@@ -7,7 +7,12 @@ import {
   RaycastChatMessage,
   RaycastImage,
 } from "../types";
-import { ErrorOllamaCustomModel, ErrorOllamaModelNotInstalled } from "../errors";
+import {
+  ErrorOllamaCustomModel,
+  ErrorOllamaModelNotInstalled,
+  ErrorOllamaModelNotMultimodal,
+  ErrorRaycastModelNotConfiguredOnLocalStorage,
+} from "../errors";
 import { SetModelView } from "./SetModelView";
 import * as React from "react";
 import { Action, ActionPanel, Detail, Icon, List, LocalStorage, Toast, showToast } from "@raycast/api";
@@ -110,8 +115,19 @@ export function ChatView(): JSX.Element {
    * @param {Error} err - Error object.
    */
   async function HandleError(err: Error) {
-    if (err instanceof ErrorOllamaModelNotInstalled) {
-      await showToast({ style: Toast.Style.Failure, title: err.message, message: err.suggest });
+    if (
+      err instanceof ErrorOllamaModelNotInstalled ||
+      err instanceof ErrorOllamaModelNotMultimodal ||
+      err == ErrorRaycastModelNotConfiguredOnLocalStorage
+    ) {
+      await showToast({
+        style: Toast.Style.Failure,
+        title: err.message,
+        message:
+          err instanceof ErrorOllamaModelNotInstalled || err instanceof ErrorOllamaModelNotMultimodal
+            ? err.suggest
+            : undefined,
+      });
       setLoading(false);
       setShowSelectModelForm(true);
       return;
