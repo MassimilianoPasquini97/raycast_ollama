@@ -1,7 +1,6 @@
 import {
   ChainPreferences,
   ModelType,
-  OllamaApiGenerateResponse,
   OllamaApiShowModelfile,
   OllamaApiTagsResponseModel,
   RaycastChatMessage,
