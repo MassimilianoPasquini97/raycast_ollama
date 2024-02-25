@@ -285,8 +285,8 @@ export function AnswerView(props: props): JSX.Element {
   }
 
   React.useEffect(() => {
-    Run();
-  }, [ModelGenerate]);
+    if (ModelGenerate && !IsLoadingModelGenerate) Run();
+  }, [ModelGenerate, IsLoadingModelGenerate]);
 
   const [showSelectModelForm, setShowSelectModelForm]: [boolean, React.Dispatch<React.SetStateAction<boolean>>] =
     React.useState(false);
