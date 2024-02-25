@@ -66,8 +66,8 @@ export async function GetImageFromFile(file: string): Promise<RaycastImage> {
 
   file = file.replace("file://", "");
   const buffer = fs.readFileSync(decodeURI(file));
-  const { mime } = (await fileTypeFromBuffer(buffer)) || {};
-  if (mime === "image/jpeg" || mime === "image/png") {
+  const fileType = await fileTypeFromBuffer(buffer);
+  if (fileType && (fileType.mime === "image/jpeg" || fileType.mime === "image/png")) {
     return {
       path: file,
       html: `<img src="${file}" alt="image" height="180" width="auto">`,
