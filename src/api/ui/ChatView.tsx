@@ -303,8 +303,8 @@ export function ChatView(): JSX.Element {
         await showToast({ style: Toast.Style.Animated, title: "🧠 Inference with Documents." });
         break;
       default:
-        stream = await LLMChain(prompt, ModelGenerate?.name as string, history);
         await showToast({ style: Toast.Style.Animated, title: "🧠 Inference." });
+        stream = await LLMChain(prompt, ModelGenerate?.name as string, history);
         break;
     }
     return [stream, images, docs];
