@@ -17,18 +17,14 @@ Use [Ollama](https://ollama.ai) for local llama inference on Raycast. This appli
 
 Chat with your preferred model from Raycast, with the following features:
 
-- Save conversation with `CMD+S` keyboard shortcut. You can access your saved conversation with `CMD+P` keyboard shortcut.
-- Change model with `CMD+M` keyboard shortcuts. For embedding is recommended to use a lower parameters model for better performance.
-- Copy your Question, Answer or even the entire Chat to the clipboard.
-- Chose how many messages use as memory with extention setting "Chat Memory Messages". By default it use the last 20 messages.
+- *CMD+M*, "Change Model": change model when you want and use different one for vision or embedding.
+- *CMD+S*, "Selection": Add text from selection or clipboard to the prompt.
+- *CMD+B*, "Browser Selection Tab": Add content from selected tab to the prompt. Raycast Browser Extention is required.
+- *CMD+I*, "Image From Clipboard": Add jpeg or png image to te prompt. A Model with vision capabilities is required.
+- *CMD+F*, "File": Add content from files. THis feature is still experimental.
 
-#### Tags
-
-With tags you can add more data on the prompt. You can use one of the following tags on the prompt:
-
-- `/image`: Add the image on the clipboard or selected on the finder to the prompt. At least Ollama v0.1.15 and one multimodal model installed are required. Only PNG or JPG image are supported.
-- `/file`: Add information of one or more files on the prompt as knowledge. Select the files to use with `CMD+F` shortcuts (text based files and PDF are supported). By default it use 'Stuff' Chain, you can change Chain type from 'Document Loader' submenu. This feature is currently experimental.
+From extentions preferences you can chose how many messages use as memory. By default it use the last 20 messages.
 
 ### Command: Create Custom Commands
 
-With '**_Create Custom Command_**' you can create your own custom Command using whatever model you want.
+All preconfigured commands are crafted for general use. This command permits you to create a custom command for your specific needs.
