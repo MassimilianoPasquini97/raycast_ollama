@@ -43,7 +43,8 @@ async function Inference(
   setAnswer: React.Dispatch<React.SetStateAction<string>>,
   setAnswerMetadata: React.Dispatch<React.SetStateAction<OllamaApiGenerateResponse>>,
   images: string[] | undefined = undefined,
-  creativity: Creativity = Creativity.Medium
+  creativity: Creativity = Creativity.Medium,
+  keep_alive?: string
 ): Promise<void> {
   await showToast({ style: Toast.Style.Animated, title: "🧠 Inference." });
   const body: OllamaApiGenerateRequestBody = {
@@ -54,6 +55,7 @@ async function Inference(
       temperature: creativity,
     },
   };
+  if (keep_alive) body.keep_alive = keep_alive;
   model.server.ollama
     .OllamaApiGenerate(body)
     .then(async (emiter) => {
@@ -83,7 +85,8 @@ export async function Run(
   setImageView: React.Dispatch<React.SetStateAction<string>>,
   setAnswer: React.Dispatch<React.SetStateAction<string>>,
   setAnswerMetadata: React.Dispatch<React.SetStateAction<OllamaApiGenerateResponse>>,
-  creativity: Creativity = Creativity.Medium
+  creativity: Creativity = Creativity.Medium,
+  keep_alive?: string
 ): Promise<void> {
   setLoading(true);
 
@@ -110,6 +113,7 @@ export async function Run(
     setAnswer,
     setAnswerMetadata,
     images && images[1] ? images[1].map((i) => i.base64) : undefined,
-    creativity
+    creativity,
+    keep_alive
   );
 }

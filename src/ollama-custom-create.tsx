@@ -2,6 +2,7 @@ import { Action, ActionPanel, Form, getPreferenceValues, Icon } from "@raycast/a
 import { FormValidation, useForm, usePromise } from "@raycast/utils";
 import { Creativity } from "./lib/enum";
 import { GetModelsName } from "./lib/ui/function";
+import * as React from "react";
 
 const p = getPreferenceValues<Preferences>();
 if (!p.ollamaCertificateValidation) process.env["NODE_TLS_REJECT_UNAUTHORIZED"] = "0";
@@ -11,6 +12,7 @@ interface FormData {
   server: string;
   model: string;
   creativity: string;
+  keep_alive: string;
 }
 
 export default function Command(): JSX.Element {
@@ -23,14 +25,19 @@ export default function Command(): JSX.Element {
     },
     initialValues: {
       creativity: String(Creativity.Medium),
+      keep_alive: "5m",
     },
     validation: {
       server: FormValidation.Required,
       model: FormValidation.Required,
       prompt: FormValidation.Required,
       creativity: FormValidation.Required,
+      keep_alive: ValidationKeepAlive,
     },
   });
+
+  const [CheckboxAdvanced, SetCheckboxAdvanced]: [boolean, React.Dispatch<React.SetStateAction<boolean>>] =
+    React.useState(false);
 
   const InfoServer = "Ollama Server";
   const InfoModel = "Ollama Model";
@@ -45,6 +52,17 @@ Following tag are supported:
 - {selection}: Add selected text or clipboard to the prompt.
 - {broswer-tab}: Add current browser tab text to the prompt. Use {broser-tab format="markdown|html|text"} if you need a differente format from markdown. Raycast Browser Extention is required.
 - {image}: Add image on clipboard to the prompt. A model with vision capability is required.`;
+  const InfoKeepAlive = `How many the model need to stay in memory, by default 5 minutes. Can be configured as follow:
+- 0, memory is free when inference is done.
+- -1, model remains on memory permanently.
+- 5 or 5s, memory is free after 5 seconds of idle.
+- 5m, memory is free after 5 minutes of idle.`;
+
+  function ValidationKeepAlive(values?: string): string | undefined {
+    if (!CheckboxAdvanced) return;
+    if (!values) return "The item is required";
+    if (!values.match(/(?:^-1$)|(?:^[0-9]+[m-s]{0,1}$)/g)) return "Wrong Format";
+  }
 
   const ActionView = (
     <ActionPanel>
@@ -54,7 +72,10 @@ Following tag are supported:
             JSON.stringify({
               prompt: itemProps.prompt.value,
               model: `${itemProps.server.value}:${itemProps.model.value}`,
-              creativity: itemProps.creativity.value,
+              parameters: JSON.stringify({
+                creativity: itemProps.creativity.value,
+                keep_alive: CheckboxAdvanced && itemProps.keep_alive.value,
+              }),
             })
           )}`,
         }}
@@ -104,6 +125,13 @@ Following tag are supported:
         />
       </Form.Dropdown>
       <Form.TextArea title="Prompt" placeholder="Enter your prompt" info={InfoPrompt} {...itemProps.prompt} />
+      <Form.Checkbox
+        id="advanced"
+        label="Advanced Settings"
+        defaultValue={CheckboxAdvanced}
+        onChange={SetCheckboxAdvanced}
+      />
+      {CheckboxAdvanced && <Form.TextField title="Keep Alive" info={InfoKeepAlive} {...itemProps.keep_alive} />}
     </Form>
   );
 }

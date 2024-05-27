@@ -9,12 +9,14 @@ export default function Command(props: RaycastArgumentsOllamaCommandCustom): JSX
   const modelIndex = props.arguments.model.indexOf(":");
   const server = props.arguments.model.substring(0, modelIndex);
   const model = props.arguments.model.substring(modelIndex + 1);
+  const parameters = JSON.parse(props.arguments.parameters);
   return (
     <AnswerView
       server={server}
       model={model}
       prompt={props.arguments.prompt}
-      creativity={Number(props.arguments.creativity)}
+      creativity={Number(parameters.creativity)}
+      keep_alive={parameters.keep_alive}
     />
   );
 }

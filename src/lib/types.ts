@@ -10,7 +10,7 @@ export interface RaycastArgumentsOllamaCommandCustom {
   arguments: {
     prompt: string;
     model: string;
-    creativity: string;
+    parameters: string;
   };
   launchType: string;
   launchContext?: string;

@@ -65,6 +65,7 @@ export interface OllamaApiGenerateRequestBody {
   raw?: boolean;
   format?: string;
   images?: string[];
+  keep_alive?: string;
 
   options?: OllamaApiGenerateOptionsRequestBody;
 }
@@ -166,6 +167,7 @@ export interface OllamaApiChatRequestBody {
   messages: OllamaApiChatMessage[];
   stream?: boolean;
   format?: string;
+  keep_alive?: string;
 
   options?: OllamaApiGenerateOptionsRequestBody;
 }

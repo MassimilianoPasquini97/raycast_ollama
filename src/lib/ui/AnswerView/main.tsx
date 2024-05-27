@@ -13,6 +13,7 @@ interface props {
   server?: string;
   model?: string;
   creativity?: Creativity;
+  keep_alive?: string;
 }
 
 /**
@@ -46,12 +47,19 @@ export function AnswerView(props: props): JSX.Element {
 
   React.useEffect(() => {
     if (Model && !IsLoadingModel)
-      Run(Model, props.prompt, setLoading, setImageView, setAnswer, setAnswerMetadata, props.creativity).catch(
-        async (e) => {
-          await showToast({ style: Toast.Style.Failure, title: "Error", message: e });
-          setLoading(false);
-        }
-      );
+      Run(
+        Model,
+        props.prompt,
+        setLoading,
+        setImageView,
+        setAnswer,
+        setAnswerMetadata,
+        props.creativity,
+        props.keep_alive
+      ).catch(async (e) => {
+        await showToast({ style: Toast.Style.Failure, title: "Error", message: e });
+        setLoading(false);
+      });
   }, [Model, IsLoadingModel]);
 
   const [showSelectModelForm, setShowSelectModelForm]: [boolean, React.Dispatch<React.SetStateAction<boolean>>] =
