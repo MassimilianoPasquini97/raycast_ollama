@@ -1,7 +1,6 @@
 <div align="center">
   <picture>
-    <source media="(prefers-color-scheme: dark)" height="128px" srcset="assets/icon@dark.png">
-    <img alt="logo" height="128px" src="assets/icon.png">
+    <img alt="logo" height="128px" src="assets/icon@dark.png">
   </picture>
   <h1 align="center">Raycast Ollama</h1>
 </div>
