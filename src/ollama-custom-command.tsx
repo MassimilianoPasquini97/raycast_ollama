@@ -9,7 +9,6 @@ export default function Command(props: RaycastArgumentsOllamaCommandCustom): JSX
   const modelIndex = props.arguments.model.indexOf(":");
   const server = props.arguments.model.substring(0, modelIndex);
   const model = props.arguments.model.substring(modelIndex + 1);
-  console.debug(server, model);
   return (
     <AnswerView
       server={server}
