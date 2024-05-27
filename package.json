@@ -204,12 +204,6 @@
           "required": true
         },
         {
-          "name": "server",
-          "placeholder": "Server",
-          "type": "text",
-          "required": true
-        },
-        {
           "name": "model",
           "placeholder": "Model",
           "type": "text",

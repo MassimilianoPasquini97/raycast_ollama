@@ -53,8 +53,7 @@ Following tag are supported:
           link: `raycast://extensions/massimiliano_pasquini/raycast-ollama/ollama-custom-command?arguments=${encodeURIComponent(
             JSON.stringify({
               prompt: itemProps.prompt.value,
-              server: itemProps.server.value,
-              model: itemProps.model.value,
+              model: `${itemProps.server.value}:${itemProps.model.value}`,
               creativity: itemProps.creativity.value,
             })
           )}`,

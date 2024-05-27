@@ -6,10 +6,14 @@ const p = getPreferenceValues<Preferences>();
 if (!p.ollamaCertificateValidation) process.env["NODE_TLS_REJECT_UNAUTHORIZED"] = "0";
 
 export default function Command(props: RaycastArgumentsOllamaCommandCustom): JSX.Element {
+  const modelIndex = props.arguments.model.indexOf(":");
+  const server = props.arguments.model.substring(0, modelIndex);
+  const model = props.arguments.model.substring(modelIndex + 1);
+  console.debug(server, model);
   return (
     <AnswerView
-      server={props.arguments.server}
-      model={props.arguments.model}
+      server={server}
+      model={model}
       prompt={props.arguments.prompt}
       creativity={Number(props.arguments.creativity)}
     />
