@@ -39,6 +39,14 @@
       "label": "Check for enable input fallback"
     },
     {
+      "name": "ollamaCommandsDefaultKeepAlive",
+      "description": "keep_alive parameter for prebuild command.",
+      "type": "textfield",
+      "required": false,
+      "title": "Commands Keep Alive",
+      "default": "5m"
+    },
+    {
       "name": "ollamaChatHistoryMessagesNumber",
       "description": "Number of last messages to use as memory",
       "type": "textfield",

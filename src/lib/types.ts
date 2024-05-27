@@ -1,6 +1,7 @@
 export interface Preferences {
   ollamaResultViewInput: string;
   ollamaResultViewInputFallback: boolean;
+  ollamaCommandsDefaultKeepAlive: string;
   ollamaChatHistoryMessagesNumber: string;
   ollamaCertificateValidation: string;
 }

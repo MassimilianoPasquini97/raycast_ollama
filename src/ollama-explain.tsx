@@ -4,8 +4,8 @@ import { CommandAnswer } from "./lib/settings/enum";
 import { Preferences } from "./lib/types";
 import { AnswerView } from "./lib/ui/AnswerView/main";
 
-const p = getPreferenceValues<Preferences>();
-if (!p.ollamaCertificateValidation) process.env["NODE_TLS_REJECT_UNAUTHORIZED"] = "0";
+const pref = getPreferenceValues<Preferences>();
+if (!pref.ollamaCertificateValidation) process.env["NODE_TLS_REJECT_UNAUTHORIZED"] = "0";
 
 export default function Command(): JSX.Element {
   const c = CommandAnswer.EXPLAIN;
@@ -25,5 +25,7 @@ Explanation: Philosophy is the study of the fundamental nature of knowledge, rea
 Text: {selection}
 
 Explanation:`;
-  return <AnswerView command={c} prompt={p} creativity={Creativity.Low} />;
+  return (
+    <AnswerView command={c} prompt={p} creativity={Creativity.Low} keep_alive={pref.ollamaCommandsDefaultKeepAlive} />
+  );
 }

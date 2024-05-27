@@ -1,10 +1,11 @@
 import { getPreferenceValues } from "@raycast/api";
+import { Preferences } from "./lib/types";
 import { Creativity } from "./lib/enum";
 import { CommandAnswer } from "./lib/settings/enum";
 import { AnswerView } from "./lib/ui/AnswerView/main";
 
-const p = getPreferenceValues<Preferences>();
-if (!p.ollamaCertificateValidation) process.env["NODE_TLS_REJECT_UNAUTHORIZED"] = "0";
+const pref = getPreferenceValues<Preferences>();
+if (!pref.ollamaCertificateValidation) process.env["NODE_TLS_REJECT_UNAUTHORIZED"] = "0";
 
 export default function Command(): JSX.Element {
   const c = CommandAnswer.TWEET;
@@ -27,5 +28,7 @@ Tweet:
 Text: {selection}
 
 Tweet:`;
-  return <AnswerView command={c} prompt={p} creativity={Creativity.High} />;
+  return (
+    <AnswerView command={c} prompt={p} creativity={Creativity.High} keep_alive={pref.ollamaCommandsDefaultKeepAlive} />
+  );
 }
