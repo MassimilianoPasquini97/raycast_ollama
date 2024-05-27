@@ -22,19 +22,30 @@ interface props {
 interface FormData {
   serverMain: string;
   modelMain: string;
+  keepAliveMain: string;
   serverVision: string;
   modelVision: string;
+  keepAliveVision: string;
   serverEmbedding: string;
   modelEmbedding: string;
+  keepAliveEmbedding: string;
 }
 
 export function FormModel(props: props): JSX.Element {
   const { data: Model, isLoading: IsLoadingModel } = usePromise(GetModelsName, []);
+  const [CheckboxMainAdvanced, SetCheckboxMainAdvanced]: [boolean, React.Dispatch<React.SetStateAction<boolean>>] =
+    React.useState(props.Chat && props.Chat.models.main.keep_alive ? true : false);
   const [CheckboxEmbedding, SetCheckboxEmbedding]: [boolean, React.Dispatch<React.SetStateAction<boolean>>] =
     React.useState(props.Chat?.models.embedding ? true : false);
+  const [CheckboxEmbeddingAdvanced, SetCheckboxEmbeddingAdvanced]: [
+    boolean,
+    React.Dispatch<React.SetStateAction<boolean>>
+  ] = React.useState(props.Chat?.models.embedding && props.Chat.models.embedding.keep_alive ? true : false);
   const [CheckboxVision, SetCheckboxVision]: [boolean, React.Dispatch<React.SetStateAction<boolean>>] = React.useState(
     props.Chat?.models.vision ? true : false
   );
+  const [CheckboxVisionAdvanced, SetCheckboxVisionAdvanced]: [boolean, React.Dispatch<React.SetStateAction<boolean>>] =
+    React.useState(props.Chat?.models.vision && props.Chat.models.vision.keep_alive ? true : false);
   const { handleSubmit, itemProps } = useForm<FormData>({
     onSubmit(values) {
       Submit(values);
@@ -42,10 +53,13 @@ export function FormModel(props: props): JSX.Element {
     initialValues: {
       serverMain: props.Chat?.models.main.server_name,
       modelMain: props.Chat?.models.main.tag,
+      keepAliveMain: props.Chat?.models.main.keep_alive ? props.Chat.models.main.keep_alive : "5m",
       serverVision: props.Chat?.models.vision?.server_name,
       modelVision: props.Chat?.models.vision?.tag,
+      keepAliveVision: props.Chat?.models.vision?.keep_alive ? props.Chat.models.vision.keep_alive : "5m",
       serverEmbedding: props.Chat?.models.embedding?.server_name,
       modelEmbedding: props.Chat?.models.embedding?.tag,
+      keepAliveEmbedding: props.Chat?.models.embedding?.keep_alive ? props.Chat.models.embedding.keep_alive : "5m",
     },
     validation: {
       serverMain: FormValidation.Required,
@@ -57,10 +71,35 @@ export function FormModel(props: props): JSX.Element {
     },
   });
 
+  function ValidationKeepAlive(values?: string): string | undefined {
+    if (!values) return "The item is required";
+    if (!values.match(/(?:^-1$)|(?:^[0-9]+[m-s]{0,1}$)/g)) return "Wrong Format";
+  }
+
+  function ValidationKeepAliveMain(values?: string): string | undefined {
+    if (!CheckboxMainAdvanced) return;
+    return ValidationKeepAlive(values);
+  }
+
+  function ValidationKeepAliveEmbedding(values?: string): string | undefined {
+    if (!CheckboxEmbeddingAdvanced) return;
+    return ValidationKeepAlive(values);
+  }
+
+  function ValidationKeepAliveVision(values?: string): string | undefined {
+    if (!CheckboxVisionAdvanced) return;
+    return ValidationKeepAlive(values);
+  }
+
   const InfoServer = "Ollama Server.";
   const InfoModel = "Ollama Model.";
   const InfoEmbeddingCheckbox = "Use a different model for embedding when you want to add a large file in context.";
   const InfoVisionCheckbox = "Use a different model for vision when you multimodal cababilities is required.";
+  const InfoKeepAlive = `How many the model need to stay in memory, by default 5 minutes. Can be configured as follow:
+- 0, memory is free when inference is done.
+- -1, model remains on memory permanently.
+- 5 or 5s, memory is free after 5 seconds of idle.
+- 5m, memory is free after 5 minutes of idle.`;
 
   const ActionView = (
     <ActionPanel>
@@ -82,12 +121,14 @@ export function FormModel(props: props): JSX.Element {
         server_name: values.serverMain,
         server: OllamaServer.get(values.serverMain) as OllamaServer,
         tag: values.modelMain,
+        keep_alive: CheckboxMainAdvanced ? values.keepAliveMain : undefined,
       };
       if (values.serverEmbedding && values.modelEmbedding) {
         chat.models.embedding = {
           server_name: values.serverEmbedding,
           server: OllamaServer.get(values.serverEmbedding) as OllamaServer,
           tag: values.modelEmbedding,
+          keep_alive: CheckboxEmbeddingAdvanced ? values.keepAliveEmbedding : undefined,
         };
       } else if (!CheckboxEmbedding && chat.models.embedding) {
         chat.models.embedding = undefined;
@@ -97,6 +138,7 @@ export function FormModel(props: props): JSX.Element {
           server_name: values.serverVision,
           server: OllamaServer.get(values.serverVision) as OllamaServer,
           tag: values.modelVision,
+          keep_alive: CheckboxVisionAdvanced ? values.keepAliveVision : undefined,
         };
       } else if (!CheckboxVision && chat.models.vision) {
         chat.models.vision = undefined;
@@ -117,6 +159,7 @@ export function FormModel(props: props): JSX.Element {
             server_name: values.serverMain,
             server: OllamaServer.get(values.serverMain) as OllamaServer,
             tag: values.modelMain,
+            keep_alive: CheckboxMainAdvanced ? values.keepAliveMain : undefined,
           },
           embedding:
             CheckboxEmbedding && values.serverEmbedding && values.modelEmbedding
@@ -124,6 +167,7 @@ export function FormModel(props: props): JSX.Element {
                   server_name: values.serverEmbedding,
                   server: OllamaServer.get(values.serverEmbedding) as OllamaServer,
                   tag: values.modelEmbedding,
+                  keep_alive: CheckboxEmbeddingAdvanced ? values.keepAliveEmbedding : undefined,
                 }
               : undefined,
           vision:
@@ -132,6 +176,7 @@ export function FormModel(props: props): JSX.Element {
                   server_name: values.serverEmbedding,
                   server: OllamaServer.get(values.serverEmbedding) as OllamaServer,
                   tag: values.modelEmbedding,
+                  keep_alive: CheckboxVisionAdvanced ? values.keepAliveVision : undefined,
                 }
               : undefined,
         },
@@ -163,6 +208,16 @@ export function FormModel(props: props): JSX.Element {
             ))}
         </Form.Dropdown>
       )}
+      {!IsLoadingModel && Model && itemProps.serverMain.value && (
+        <Form.Checkbox
+          id="advancedMain"
+          label="Advanced Settings"
+          defaultValue={CheckboxMainAdvanced}
+          onChange={SetCheckboxMainAdvanced}
+        />
+      )}
+      {CheckboxMainAdvanced && <Form.TextField title="Keep Alive" info={InfoKeepAlive} {...itemProps.keepAliveMain} />}
+      <Form.Separator />
       <Form.Checkbox
         id="embedding"
         info={InfoEmbeddingCheckbox}
@@ -188,6 +243,18 @@ export function FormModel(props: props): JSX.Element {
             ))}
         </Form.Dropdown>
       )}
+      {!IsLoadingModel && Model && itemProps.serverEmbedding.value && CheckboxEmbedding && (
+        <Form.Checkbox
+          id="advancedEmbedding"
+          label="Advanced Settings"
+          defaultValue={CheckboxEmbeddingAdvanced}
+          onChange={SetCheckboxEmbeddingAdvanced}
+        />
+      )}
+      {CheckboxEmbeddingAdvanced && (
+        <Form.TextField title="Keep Alive" info={InfoKeepAlive} {...itemProps.keepAliveEmbedding} />
+      )}
+      <Form.Separator />
       <Form.Checkbox
         id="vision"
         info={InfoVisionCheckbox}
@@ -212,6 +279,17 @@ export function FormModel(props: props): JSX.Element {
               <Form.Dropdown.Item title={s} value={s} key={s} />
             ))}
         </Form.Dropdown>
+      )}
+      {!IsLoadingModel && Model && itemProps.serverVision.value && CheckboxVision && (
+        <Form.Checkbox
+          id="advancedVision"
+          label="Advanced Settings"
+          defaultValue={CheckboxVisionAdvanced}
+          onChange={SetCheckboxVisionAdvanced}
+        />
+      )}
+      {CheckboxVisionAdvanced && (
+        <Form.TextField title="Keep Alive" info={InfoKeepAlive} {...itemProps.keepAliveVision} />
       )}
     </Form>
   );

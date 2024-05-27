@@ -279,6 +279,7 @@ async function Inference(
   const body: OllamaApiChatRequestBody = {
     model: model.tag,
     messages: messages,
+    keep_alive: model.keep_alive,
   };
 
   setChat((prevState) => {
