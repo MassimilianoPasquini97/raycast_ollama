@@ -9,7 +9,5 @@ if (!pref.ollamaCertificateValidation) process.env["NODE_TLS_REJECT_UNAUTHORIZED
 export default function Command(): JSX.Element {
   const c = CommandAnswer.IMAGE_TO_TEXT;
   const p = "Extract all the text from the following images. {image}\n";
-  return (
-    <AnswerView command={c} prompt={p} creativity={Creativity.Low} keep_alive={pref.ollamaCommandsDefaultKeepAlive} />
-  );
+  return <AnswerView command={c} prompt={p} creativity={Creativity.Low} />;
 }

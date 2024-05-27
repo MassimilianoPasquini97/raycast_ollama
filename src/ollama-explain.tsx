@@ -25,7 +25,5 @@ Explanation: Philosophy is the study of the fundamental nature of knowledge, rea
 Text: {selection}
 
 Explanation:`;
-  return (
-    <AnswerView command={c} prompt={p} creativity={Creativity.Low} keep_alive={pref.ollamaCommandsDefaultKeepAlive} />
-  );
+  return <AnswerView command={c} prompt={p} creativity={Creativity.Low} />;
 }

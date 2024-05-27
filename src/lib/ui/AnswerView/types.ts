@@ -9,4 +9,5 @@ export interface UiServer {
 export interface UiModel {
   server: UiServer;
   tag: OllamaApiTagsResponseModel;
+  keep_alive?: string;
 }

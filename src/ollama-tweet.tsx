@@ -28,7 +28,5 @@ Tweet:
 Text: {selection}
 
 Tweet:`;
-  return (
-    <AnswerView command={c} prompt={p} creativity={Creativity.High} keep_alive={pref.ollamaCommandsDefaultKeepAlive} />
-  );
+  return <AnswerView command={c} prompt={p} creativity={Creativity.High} />;
 }

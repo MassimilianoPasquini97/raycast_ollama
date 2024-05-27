@@ -46,7 +46,7 @@ export function AnswerView(props: props): JSX.Element {
   const [showAnswerMetadata, setShowAnswerMetadata] = React.useState(false);
 
   React.useEffect(() => {
-    if (Model && !IsLoadingModel)
+    if (Model && !IsLoadingModel) {
       Run(
         Model,
         props.prompt,
@@ -55,11 +55,12 @@ export function AnswerView(props: props): JSX.Element {
         setAnswer,
         setAnswerMetadata,
         props.creativity,
-        props.keep_alive
+        props.keep_alive ? props.keep_alive : Model.keep_alive
       ).catch(async (e) => {
         await showToast({ style: Toast.Style.Failure, title: "Error", message: e });
         setLoading(false);
       });
+    }
   }, [Model, IsLoadingModel]);
 
   const [showSelectModelForm, setShowSelectModelForm]: [boolean, React.Dispatch<React.SetStateAction<boolean>>] =
@@ -77,6 +78,7 @@ export function AnswerView(props: props): JSX.Element {
         revalidate={RevalidateModel}
         server={!IsLoadingModel && Model ? Model.server.name : undefined}
         model={!IsLoadingModel && Model ? Model.tag.name : undefined}
+        keep_alive={!IsLoadingModel && Model ? Model.keep_alive : undefined}
       />
     );
 

@@ -4,6 +4,7 @@ import { RaycastImage } from "../types";
 export interface SettingsModel {
   server: OllamaServer;
   tag: string;
+  keep_alive?: string;
 }
 
 export interface SettingsChatModel extends SettingsModel {

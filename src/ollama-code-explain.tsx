@@ -14,12 +14,5 @@ export default function Command(): JSX.Element {
 Code: {selection}
 
 Explanation:`;
-  return (
-    <AnswerView
-      command={c}
-      prompt={p}
-      creativity={Creativity.Medium}
-      keep_alive={pref.ollamaCommandsDefaultKeepAlive}
-    />
-  );
+  return <AnswerView command={c} prompt={p} creativity={Creativity.Medium} />;
 }

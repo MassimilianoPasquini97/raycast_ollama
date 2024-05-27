@@ -7,6 +7,7 @@ import { GetOllamaServerByName, GetSettingsCommandAnswer } from "../../settings/
 import { showToast, Toast } from "@raycast/api";
 import { GetAvailableModel, PromptTokenImageParser, PromptTokenParser } from "../function";
 import { Creativity } from "../../enum";
+import { SettingsCommandAnswer } from "../../settings/types";
 
 /**
  * Get Types.UiModel.
@@ -16,10 +17,11 @@ import { Creativity } from "../../enum";
  * @param Types.UiModel.
  */
 export async function GetModel(command?: CommandAnswer, server?: string, model?: string): Promise<Types.UiModel> {
+  let settings: SettingsCommandAnswer | undefined;
   if (command) {
-    const s = await GetSettingsCommandAnswer(command);
-    server = s.server;
-    model = s.model.main.tag;
+    settings = await GetSettingsCommandAnswer(command);
+    server = settings.server;
+    model = settings.model.main.tag;
   } else if (!server || !model) throw "server and model need to be defined";
   const s = await GetOllamaServerByName(server);
   const m = (await GetAvailableModel(server)).filter((m) => m.name === model);
@@ -30,6 +32,7 @@ export async function GetModel(command?: CommandAnswer, server?: string, model?:
       ollama: new Ollama(s),
     },
     tag: m[0],
+    keep_alive: settings?.model.main.keep_alive,
   };
 }
 

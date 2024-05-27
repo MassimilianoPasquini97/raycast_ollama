@@ -14,7 +14,5 @@ export default function Command(props: RaycastArgumentsOllamaCommandTranslate): 
 Text: {selection}
 
 Translation:`;
-  return (
-    <AnswerView command={c} prompt={p} creativity={Creativity.Low} keep_alive={pref.ollamaCommandsDefaultKeepAlive} />
-  );
+  return <AnswerView command={c} prompt={p} creativity={Creativity.Low} />;
 }

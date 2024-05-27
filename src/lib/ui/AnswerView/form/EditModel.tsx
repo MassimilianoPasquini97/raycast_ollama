@@ -12,11 +12,13 @@ interface props {
   command: CommandAnswer;
   server?: string;
   model?: string;
+  keep_alive?: string;
 }
 
 interface FormData {
   server: string;
   model: string;
+  keep_alive: string;
 }
 
 export function EditModel(props: props): JSX.Element {
@@ -28,12 +30,29 @@ export function EditModel(props: props): JSX.Element {
     initialValues: {
       server: props.server,
       model: props.model,
+      keep_alive: props.keep_alive ? props.keep_alive : "5m",
     },
     validation: {
       server: FormValidation.Required,
       model: FormValidation.Required,
+      keep_alive: ValidationKeepAlive,
     },
   });
+
+  const [CheckboxAdvanced, SetCheckboxAdvanced]: [boolean, React.Dispatch<React.SetStateAction<boolean>>] =
+    React.useState(props.keep_alive ? true : false);
+
+  const InfoKeepAlive = `How many the model need to stay in memory, by default 5 minutes. Can be configured as follow:
+- 0, memory is free when inference is done.
+- -1, model remains on memory permanently.
+- 5 or 5s, memory is free after 5 seconds of idle.
+- 5m, memory is free after 5 minutes of idle.`;
+
+  function ValidationKeepAlive(values?: string): string | undefined {
+    if (!CheckboxAdvanced) return;
+    if (!values) return "The item is required";
+    if (!values.match(/(?:^-1$)|(?:^[0-9]+[m-s]{0,1}$)/g)) return "Wrong Format";
+  }
 
   const ActionView = (
     <ActionPanel>
@@ -50,6 +69,7 @@ export function EditModel(props: props): JSX.Element {
         main: {
           server: s,
           tag: values.model,
+          keep_alive: CheckboxAdvanced ? values.keep_alive : undefined,
         },
       },
     };
@@ -77,6 +97,13 @@ export function EditModel(props: props): JSX.Element {
             ))}
         </Form.Dropdown>
       )}
+      <Form.Checkbox
+        id="advanced"
+        label="Advanced Settings"
+        defaultValue={CheckboxAdvanced}
+        onChange={SetCheckboxAdvanced}
+      />
+      {CheckboxAdvanced && <Form.TextField title="Keep Alive" info={InfoKeepAlive} {...itemProps.keep_alive} />}
     </Form>
   );
 }

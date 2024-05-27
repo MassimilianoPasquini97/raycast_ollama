@@ -26,7 +26,5 @@ Stricly follow these rules:
 Text: {selection}
 
 Improved Text:`;
-  return (
-    <AnswerView command={c} prompt={p} creativity={Creativity.Low} keep_alive={pref.ollamaCommandsDefaultKeepAlive} />
-  );
+  return <AnswerView command={c} prompt={p} creativity={Creativity.Low} />;
 }

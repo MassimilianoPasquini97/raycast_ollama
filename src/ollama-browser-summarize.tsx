@@ -25,5 +25,5 @@ Some rules to follow precisely:
 
 Here's the website information:
 {browser-tab}`;
-  return <AnswerView command={c} prompt={p} keep_alive={pref.ollamaCommandsDefaultKeepAlive} />;
+  return <AnswerView command={c} prompt={p} />;
 }

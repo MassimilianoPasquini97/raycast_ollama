@@ -22,7 +22,5 @@ Stictly follow these rules:
 Text: {selection}
 
 Expanded text:`;
-  return (
-    <AnswerView command={c} prompt={p} creativity={Creativity.Low} keep_alive={pref.ollamaCommandsDefaultKeepAlive} />
-  );
+  return <AnswerView command={c} prompt={p} creativity={Creativity.Low} />;
 }
