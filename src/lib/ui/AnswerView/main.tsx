@@ -31,7 +31,11 @@ export function AnswerView(props: props): JSX.Element {
     isLoading: IsLoadingModel,
   } = usePromise(GetModel, [props.command, props.server, props.model], {
     onError: (e) => {
-      if (String(e) === "Settings for this Command unavailable" || String(e) === "Model unavailable on given server")
+      if (
+        String(e) === "Settings for this Command unavailable" ||
+        String(e) === "Model unavailable on given server" ||
+        String(e) == "Error: Verify Ollama is Installed and Currently Running."
+      )
         setShowSelectModelForm(true);
       showToast({ style: Toast.Style.Failure, title: String(e) });
     },

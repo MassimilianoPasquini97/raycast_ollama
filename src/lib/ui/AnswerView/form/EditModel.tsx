@@ -79,7 +79,7 @@ export function EditModel(props: props): JSX.Element {
   }
 
   return (
-    <Form actions={ActionView}>
+    <Form actions={ActionView} isLoading={IsLoadingModel}>
       {!IsLoadingModel && Model && (
         <Form.Dropdown title="Server" {...itemProps.server}>
           {[...Model.keys()].sort().map((s) => (

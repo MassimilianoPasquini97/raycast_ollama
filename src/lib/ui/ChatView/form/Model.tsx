@@ -64,10 +64,13 @@ export function FormModel(props: props): JSX.Element {
     validation: {
       serverMain: FormValidation.Required,
       modelMain: FormValidation.Required,
+      keepAliveMain: ValidationKeepAliveMain,
       serverVision: CheckboxVision ? FormValidation.Required : undefined,
       modelVision: CheckboxVision ? FormValidation.Required : undefined,
+      keepAliveVision: ValidationKeepAliveVision,
       serverEmbedding: CheckboxEmbedding ? FormValidation.Required : undefined,
       modelEmbedding: CheckboxEmbedding ? FormValidation.Required : undefined,
+      keepAliveEmbedding: ValidationKeepAliveEmbedding,
     },
   });
 
@@ -190,7 +193,7 @@ export function FormModel(props: props): JSX.Element {
   }
 
   return (
-    <Form actions={ActionView}>
+    <Form actions={ActionView} isLoading={IsLoadingModel}>
       {!IsLoadingModel && Model && (
         <Form.Dropdown title="Server" info={InfoServer} {...itemProps.serverMain}>
           {[...Model.keys()].sort().map((s) => (

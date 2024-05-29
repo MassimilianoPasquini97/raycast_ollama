@@ -8,11 +8,13 @@ import { RequestInit, HeadersInit } from "node-fetch";
 export class Ollama {
   private _server: string;
   private _headers: HeadersInit | undefined;
+  private _signal: AbortSignal;
 
   /**
    * @param server - Ollama Server Route, default value: { url: "http://127.0.0.1:11434" }.
    */
   constructor(server = { url: "http://127.0.0.1:11434" } as Types.OllamaServer) {
+    this._signal = AbortSignal.timeout(180);
     this._server = server.url;
     if (server.auth && server.auth.mode === Enum.OllamaServerAuthorizationMethod.BASIC)
       this._headers = {
@@ -47,6 +49,7 @@ export class Ollama {
     const url = `${this._server}/api/version`;
     const req: RequestInit = {
       headers: this._headers,
+      signal: this._signal,
     };
     const data = await fetch(url, req)
       .then((response) => response.json())
@@ -70,6 +73,7 @@ export class Ollama {
     const url = `${this._server}/api/tags`;
     const req: RequestInit = {
       headers: this._headers,
+      signal: this._signal,
     };
     const data = await fetch(url, req)
       .then((response) => response.json())
