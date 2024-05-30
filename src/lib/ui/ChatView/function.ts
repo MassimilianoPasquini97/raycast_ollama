@@ -25,17 +25,21 @@ const preferences = getPreferenceValues<Preferences>();
  * Set Chat by given index.
  * @param i - index.
  * @param setChat - React SetChat Function.
- * @param setIsLoading - React SetIsLoading Function.
+ * @param setChatModelsAvailable - React SetChatModelsAvailabel Function.
  * @param setShowFormModel = React SetShowFormModel Function.
  */
 export async function ChangeChat(
   i: number,
   setChat: React.Dispatch<React.SetStateAction<RaycastChat | undefined>>,
-  setIsLoading: React.Dispatch<React.SetStateAction<boolean>>,
+  setChatModelsAvailable: React.Dispatch<React.SetStateAction<boolean>>,
   setShowFormModel: React.Dispatch<React.SetStateAction<boolean>>
 ): Promise<void> {
-  setIsLoading(true);
-  const c = await GetSettingsCommandChatByIndex(i);
+  const c = await GetSettingsCommandChatByIndex(i).catch(async (e) => {
+    await showToast({ style: Toast.Style.Failure, title: "Error", message: e });
+    setShowFormModel(true);
+    return;
+  });
+  if (!c) return;
   const vi = await VerifyChatModelInstalled(
     c.models.main.server_name,
     c.models.main.tag,
@@ -43,10 +47,12 @@ export async function ChangeChat(
     c.models.embedding?.tag,
     c.models.vision?.server_name,
     c.models.vision?.tag
-  );
+  ).catch(async (e) => {
+    await showToast({ style: Toast.Style.Failure, title: "Error", message: e });
+    setChatModelsAvailable(false);
+  });
   setChat(c);
-  if (!vi) setShowFormModel(true);
-  setIsLoading(false);
+  if (vi) setChatModelsAvailable(true);
 }
 
 /**
@@ -86,7 +92,7 @@ async function VerifyChatModelInstalled(
 export async function NewChat(
   chat: RaycastChat,
   setChatNameIndex: React.Dispatch<React.SetStateAction<number>>,
-  revalidate: CallableFunction
+  revalidate: () => Promise<string[]>
 ): Promise<void> {
   const cn: RaycastChat = {
     name: "New Chat",
@@ -94,8 +100,7 @@ export async function NewChat(
     messages: [],
   };
   await AddSettingsCommandChat(cn);
-  await revalidate();
-  setChatNameIndex(0);
+  await revalidate().then(() => setChatNameIndex(0));
 }
 
 /**

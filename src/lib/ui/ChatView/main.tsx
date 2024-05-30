@@ -25,18 +25,14 @@ export function ChatView(): JSX.Element {
     revalidate: RevalidateChatNames,
     isLoading: IsLoadingChatNames,
   } = usePromise(GetSettingsCommandChatNames, [], {
-    onData: async () => {
-      await ChangeChat(ChatNameIndex, SetChat, SetIsLoading, setShowFormModel).catch(async (e) => {
-        setShowFormModel(true);
-        await showToast({ style: Toast.Style.Failure, title: "Error", message: e });
-      });
-    },
     onError: () => setShowFormModel(true),
   });
   const [ChatNameIndex, SetChatNameIndex]: [number, React.Dispatch<React.SetStateAction<number>>] = React.useState(0);
   const [Chat, SetChat]: [RaycastChat | undefined, React.Dispatch<React.SetStateAction<RaycastChat | undefined>>] =
     React.useState();
   const [ChatIndex, SetChatIndex]: [number, React.Dispatch<React.SetStateAction<number>>] = React.useState(0);
+  const [ChatModelsAvailable, SetChatModelsAvailable]: [boolean, React.Dispatch<React.SetStateAction<boolean>>] =
+    React.useState(false);
   const [IsLoading, SetIsLoading]: [boolean, React.Dispatch<React.SetStateAction<boolean>>] = React.useState(false);
   const [Query, SetQuery]: [string, React.Dispatch<React.SetStateAction<string>>] = React.useState("");
   const [ShowAnswerMetadata, SetShowAnswerMetadata] = React.useState(false);
@@ -52,7 +48,7 @@ export function ChatView(): JSX.Element {
 
   // Save Chat To LocalStoarge on Inference Done.
   React.useEffect(() => {
-    if (Chat && Chat.messages.length > 0 && Chat.messages[Chat.messages.length - 1].done) {
+    if (IsLoading && Chat && Chat.messages.length > 0 && Chat.messages[Chat.messages.length - 1].done) {
       SetQuery("");
       SetIsLoading(false);
       if (Image) SetImage(undefined);
@@ -67,7 +63,12 @@ export function ChatView(): JSX.Element {
         });
       SetSettingsCommandChatByIndex(ChatNameIndex, Chat);
     }
-  }, [Chat]);
+  }, [Chat, IsLoading]);
+
+  // Change Chat on new ChatNames or new ChatNameIndex
+  React.useEffect(() => {
+    ChangeChat(ChatNameIndex, SetChat, SetChatModelsAvailable, setShowFormModel);
+  }, [ChatNames, ChatNameIndex]);
 
   // Change Chat Index to the last one when Chat change.
   React.useEffect(() => {
@@ -94,7 +95,7 @@ export function ChatView(): JSX.Element {
   function ActionMessage(props: { message?: RaycastChatMessage }): JSX.Element {
     return (
       <ActionPanel>
-        {Query && Chat && (
+        {!IsLoading && Query && Chat && ChatModelsAvailable && (
           <Action
             title="Get Answer"
             icon={Icon.SpeechBubbleActive}
@@ -106,6 +107,13 @@ export function ChatView(): JSX.Element {
                 SetIsLoading(false);
               });
             }}
+          />
+        )}
+        {!IsLoadingChatNames && !ChatModelsAvailable && (
+          <Action
+            title="Reload"
+            icon={Icon.Repeat}
+            onAction={async () => await ChangeChat(ChatNameIndex, SetChat, SetChatModelsAvailable, setShowFormModel)}
           />
         )}
         <ActionPanel.Section title="Chat">
@@ -124,7 +132,7 @@ export function ChatView(): JSX.Element {
             />
           )}
           {props.message && <Action.CopyToClipboard title="Copy Conversation" content={ClipboardConversation(Chat)} />}
-          {Chat && Chat.messages.length > 0 && ChatNames && (
+          {Chat && (
             <Action
               title="New Chat"
               icon={Icon.NewDocument}
@@ -147,7 +155,6 @@ export function ChatView(): JSX.Element {
                 icon={Icon.Trash}
                 onAction={() => {
                   DeleteSettingsCommandChatByIndex(ChatNameIndex).then(() => {
-                    SetChatNameIndex(0);
                     RevalidateChatNames();
                   });
                 }}
@@ -156,48 +163,52 @@ export function ChatView(): JSX.Element {
             </ActionPanel.Submenu>
           )}
         </ActionPanel.Section>
-        <ActionPanel.Section title="Attach">
-          <Action
-            title="Selection"
-            icon={Icon.QuoteBlock}
-            onAction={() => SetQuery((prevState) => (prevState += "\n{selection}\n"))}
-            shortcut={{ modifiers: ["cmd"], key: "s" }}
-          />
-          <Action
-            title="Browser Extention Tab"
-            icon={Icon.Globe}
-            onAction={() => SetQuery((prevState) => (prevState += "\n{browser-tab}\n"))}
-            shortcut={{ modifiers: ["cmd"], key: "b" }}
-          />
-          <Action
-            title="Image From Clipboard"
-            icon={Icon.Image}
-            onAction={async () =>
-              GetImage()
-                .then((i) => {
-                  SetImage(i);
-                  showToast({ style: Toast.Style.Success, title: "Image Added" });
-                })
-                .catch((e) => {
-                  showToast({ style: Toast.Style.Failure, title: "Error: ", message: String(e) });
-                })
-            }
-            shortcut={{ modifiers: ["cmd"], key: "i" }}
-          />
-          <Action
-            title="File"
-            icon={Icon.Finder}
-            onAction={() => setShowFormAttachFile(true)}
-            shortcut={{ modifiers: ["cmd"], key: "f" }}
-          />
-        </ActionPanel.Section>
+        {Chat && !IsLoading && (
+          <ActionPanel.Section title="Attach">
+            <Action
+              title="Selection"
+              icon={Icon.QuoteBlock}
+              onAction={() => SetQuery((prevState) => (prevState += "\n{selection}\n"))}
+              shortcut={{ modifiers: ["cmd"], key: "s" }}
+            />
+            <Action
+              title="Browser Extention Tab"
+              icon={Icon.Globe}
+              onAction={() => SetQuery((prevState) => (prevState += "\n{browser-tab}\n"))}
+              shortcut={{ modifiers: ["cmd"], key: "b" }}
+            />
+            <Action
+              title="Image From Clipboard"
+              icon={Icon.Image}
+              onAction={async () =>
+                GetImage()
+                  .then((i) => {
+                    SetImage(i);
+                    showToast({ style: Toast.Style.Success, title: "Image Added" });
+                  })
+                  .catch((e) => {
+                    showToast({ style: Toast.Style.Failure, title: "Error: ", message: String(e) });
+                  })
+              }
+              shortcut={{ modifiers: ["cmd"], key: "i" }}
+            />
+            <Action
+              title="File"
+              icon={Icon.Finder}
+              onAction={() => setShowFormAttachFile(true)}
+              shortcut={{ modifiers: ["cmd"], key: "f" }}
+            />
+          </ActionPanel.Section>
+        )}
         <ActionPanel.Section title="Settings">
-          <Action
-            title="Change Model"
-            icon={Icon.Box}
-            onAction={() => setShowFormModel(true)}
-            shortcut={{ modifiers: ["cmd"], key: "m" }}
-          />
+          {Chat && (
+            <Action
+              title="Change Model"
+              icon={Icon.Box}
+              onAction={() => setShowFormModel(true)}
+              shortcut={{ modifiers: ["cmd"], key: "m" }}
+            />
+          )}
           {props.message && (
             <Action
               title={ShowAnswerMetadata ? "Hide Metadata" : "Show Metadata"}
@@ -264,6 +275,7 @@ export function ChatView(): JSX.Element {
     return (
       <FormModel
         SetChat={SetChat}
+        SetChatModelsAvailable={SetChatModelsAvailable}
         SetShow={setShowFormModel}
         Chat={Chat}
         ChatNameIndex={ChatNameIndex}
@@ -294,18 +306,14 @@ export function ChatView(): JSX.Element {
       onSearchTextChange={(t) => {
         if (!IsLoading) SetQuery(t);
       }}
-      actions={!(IsLoading || IsLoadingChatNames) && <ActionMessage />}
+      actions={!IsLoadingChatNames && <ActionMessage />}
       isShowingDetail={Chat && Chat.messages.length > 0}
       searchBarAccessory={
-        !IsLoadingChatNames && ChatNames ? (
+        !IsLoadingChatNames && ChatNames && !IsLoading ? (
           <List.Dropdown
             tooltip="Chat History"
             value={String(ChatNameIndex)}
-            onChange={(v) => {
-              ChangeChat(Number(v), SetChat, SetIsLoading, setShowFormModel).then(() => {
-                SetChatNameIndex(Number(v));
-              });
-            }}
+            onChange={(v) => SetChatNameIndex(Number(v))}
           >
             {ChatNames.map((n, i) => (
               <List.Dropdown.Item key={i} title={n} value={String(i)} />
@@ -321,7 +329,7 @@ export function ChatView(): JSX.Element {
             title={item.messages[0].content}
             key={index}
             id={index.toString()}
-            actions={!IsLoading && <ActionMessage message={item} />}
+            actions={<ActionMessage message={item} />}
             detail={
               <List.Item.Detail
                 markdown={`${item.images ? `${item.images.map((i) => i.html)}\n` : ""}${item.messages[1].content}`}
@@ -330,8 +338,10 @@ export function ChatView(): JSX.Element {
             }
           />
         ))
-      ) : (
+      ) : ChatModelsAvailable ? (
         <List.EmptyView icon={Icon.Message} title="Start a Conversation with Ollama" />
+      ) : (
+        <List.EmptyView icon={Icon.Xmark} title="Ollama Server or Selected Model Unavailable." />
       )}
     </List>
   );

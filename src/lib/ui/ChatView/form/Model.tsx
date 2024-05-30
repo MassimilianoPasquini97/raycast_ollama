@@ -16,7 +16,8 @@ interface props {
   Chat?: RaycastChat;
   ChatNameIndex?: number;
   SetChat: React.Dispatch<React.SetStateAction<RaycastChat | undefined>>;
-  revalidate: CallableFunction;
+  SetChatModelsAvailable: React.Dispatch<React.SetStateAction<boolean>>;
+  revalidate: () => Promise<string[]>;
 }
 
 interface FormData {
@@ -51,14 +52,32 @@ export function FormModel(props: props): JSX.Element {
       Submit(values);
     },
     initialValues: {
-      serverMain: props.Chat?.models.main.server_name,
-      modelMain: props.Chat?.models.main.tag,
+      serverMain:
+        props.Chat && !IsLoadingModel && Model && Model.has(props.Chat.models.main.server_name)
+          ? props.Chat.models.main.server_name
+          : undefined,
+      modelMain:
+        props.Chat && !IsLoadingModel && Model && Model.has(props.Chat.models.main.server_name)
+          ? props.Chat.models.main.tag
+          : undefined,
       keepAliveMain: props.Chat?.models.main.keep_alive ? props.Chat.models.main.keep_alive : "5m",
-      serverVision: props.Chat?.models.vision?.server_name,
-      modelVision: props.Chat?.models.vision?.tag,
+      serverVision:
+        props.Chat?.models.vision && !IsLoadingModel && Model && Model.has(props.Chat.models.vision.server_name)
+          ? props.Chat.models.vision.server_name
+          : undefined,
+      modelVision:
+        props.Chat?.models.vision && !IsLoadingModel && Model && Model.has(props.Chat.models.vision.server_name)
+          ? props.Chat.models.vision.tag
+          : undefined,
       keepAliveVision: props.Chat?.models.vision?.keep_alive ? props.Chat.models.vision.keep_alive : "5m",
-      serverEmbedding: props.Chat?.models.embedding?.server_name,
-      modelEmbedding: props.Chat?.models.embedding?.tag,
+      serverEmbedding:
+        props.Chat?.models.embedding && !IsLoadingModel && Model && Model.has(props.Chat.models.embedding.server_name)
+          ? props.Chat.models.embedding.server_name
+          : undefined,
+      modelEmbedding:
+        props.Chat?.models.embedding && !IsLoadingModel && Model && Model.has(props.Chat.models.embedding.server_name)
+          ? props.Chat.models.embedding.tag
+          : undefined,
       keepAliveEmbedding: props.Chat?.models.embedding?.keep_alive ? props.Chat.models.embedding.keep_alive : "5m",
     },
     validation: {
@@ -152,7 +171,7 @@ export function FormModel(props: props): JSX.Element {
       }
       await SetSettingsCommandChatByIndex(props.ChatNameIndex, chat).catch(async () => {
         await AddSettingsCommandChat(chat as RaycastChat);
-        props.revalidate();
+        await props.revalidate();
       });
     } else {
       chat = {
@@ -186,9 +205,10 @@ export function FormModel(props: props): JSX.Element {
         messages: [],
       };
       await AddSettingsCommandChat(chat);
-      props.revalidate();
+      await props.revalidate();
     }
     props.SetChat(chat);
+    props.SetChatModelsAvailable(true);
     props.SetShow(false);
   }
 
