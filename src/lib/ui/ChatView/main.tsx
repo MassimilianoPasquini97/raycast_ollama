@@ -67,6 +67,11 @@ export function ChatView(): JSX.Element {
 
   // Change Chat on new ChatNames or new ChatNameIndex
   React.useEffect(() => {
+    if (!ChatNames) return;
+    if (ChatNameIndex > ChatNames.length - 1) {
+      SetChatNameIndex(ChatNames.length - 1);
+      return;
+    }
     ChangeChat(ChatNameIndex, SetChat, SetChatModelsAvailable, setShowFormModel);
   }, [ChatNames, ChatNameIndex]);
 
