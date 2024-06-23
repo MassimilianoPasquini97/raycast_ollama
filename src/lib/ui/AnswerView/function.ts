@@ -22,10 +22,10 @@ export async function GetModel(command?: CommandAnswer, server?: string, model?:
     settings = await GetSettingsCommandAnswer(command);
     server = settings.server;
     model = settings.model.main.tag;
-  } else if (!server || !model) throw "server and model need to be defined";
+  } else if (!server || !model) throw new Error("server and model need to be defined");
   const s = await GetOllamaServerByName(server);
   const m = (await GetAvailableModel(server)).filter((m) => m.name === model);
-  if (m.length < 1) throw "Model unavailable on given server";
+  if (m.length < 1) throw new Error("Model unavailable on given server");
   return {
     server: {
       name: server,
