@@ -39,30 +39,30 @@ export async function GetModel(command?: CommandAnswer, server?: string, model?:
 }
 
 /**
- * Convert answer into chat for continue conversation.
- * @param uiModel
+ * Convert answer into chat for continue conversation on "Chat with Ollama" command.
+ * @param model
  * @param query
  * @param answer
- * @param answerMetadata
- * @param l? - set to `false` if you need only to convert answer with out opening "Chat with Ollama" command.
+ * @param answerMeta
+ * @param openCommand? - `false` for avoiding open "Chat with Ollama" command.
  */
-export async function ConvertToChat(
-  uiModel: Types.UiModel,
+export async function convertAnswerToChat(
+  model: Types.UiModel,
   query: string | undefined,
   images: RaycastImage[] | undefined,
   answer: string,
-  answerMetadata: OllamaApiGenerateResponse,
-  l = true
+  answerMeta: OllamaApiGenerateResponse,
+  openCommand = true
 ): Promise<void> {
-  const s = await GetOllamaServerByName(uiModel.server.name);
-  const c: RaycastChat = {
-    name: `${query?.substring(0, 25)}...`,
+  const server = await GetOllamaServerByName(model.server.name);
+  const chat: RaycastChat = {
+    name: query ? `${query.substring(0, 25)}...` : "New Chat",
     models: {
       main: {
-        server: s,
-        server_name: uiModel.server.name,
-        tag: uiModel.tag.name,
-        keep_alive: uiModel.keep_alive,
+        server: server,
+        server_name: model.server.name,
+        tag: model.tag.name,
+        keep_alive: model.keep_alive,
       },
     },
     messages: [
@@ -79,12 +79,12 @@ export async function ConvertToChat(
           },
         ],
         images: images,
-        ...answerMetadata,
+        ...answerMeta,
       },
     ],
   };
-  await AddSettingsCommandChat(c);
-  l && (await launchCommand({ name: "ollama-chat", type: LaunchType.UserInitiated }));
+  await AddSettingsCommandChat(chat);
+  openCommand && (await launchCommand({ name: "ollama-chat", type: LaunchType.UserInitiated }));
 }
 
 /**

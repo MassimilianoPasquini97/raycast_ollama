@@ -1,7 +1,7 @@
 import * as React from "react";
 import { Action, ActionPanel, Detail, Icon, List, showToast, Toast } from "@raycast/api";
 import { usePromise } from "@raycast/utils";
-import { ConvertToChat, GetModel, Run } from "./function";
+import { convertAnswerToChat, GetModel, Run } from "./function";
 import { CommandAnswer } from "../../settings/enum";
 import { OllamaApiGenerateResponse, OllamaApiTagsResponseModel } from "../../ollama/types";
 import { EditModel } from "./form/EditModel";
@@ -112,7 +112,9 @@ export function AnswerView(props: props): JSX.Element {
           <Action
             title="Continue as Chat"
             icon={Icon.SpeechBubble}
-            onAction={async () => await ConvertToChat(Model, query.current, images.current, answer, answerMetadata)}
+            onAction={async () =>
+              await convertAnswerToChat(Model, query.current, images.current, answer, answerMetadata)
+            }
             shortcut={{ modifiers: ["cmd"], key: "n" }}
           />
         )}
