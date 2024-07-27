@@ -3,11 +3,13 @@ import * as React from "react";
 import { Ollama } from "../../ollama/ollama";
 import { OllamaApiGenerateRequestBody, OllamaApiGenerateResponse } from "../../ollama/types";
 import { CommandAnswer } from "../../settings/enum";
-import { GetOllamaServerByName, GetSettingsCommandAnswer } from "../../settings/settings";
-import { showToast, Toast } from "@raycast/api";
+import { AddSettingsCommandChat, GetOllamaServerByName, GetSettingsCommandAnswer } from "../../settings/settings";
+import { launchCommand, LaunchType, showToast, Toast } from "@raycast/api";
 import { GetAvailableModel, PromptTokenImageParser, PromptTokenParser } from "../function";
 import { Creativity } from "../../enum";
-import { SettingsCommandAnswer } from "../../settings/types";
+import { RaycastChat, SettingsCommandAnswer } from "../../settings/types";
+import { OllamaApiChatMessageRole } from "../../ollama/enum";
+import { RaycastImage } from "../../types";
 
 /**
  * Get Types.UiModel.
@@ -34,6 +36,55 @@ export async function GetModel(command?: CommandAnswer, server?: string, model?:
     tag: m[0],
     keep_alive: settings?.model.main.keep_alive,
   };
+}
+
+/**
+ * Convert answer into chat for continue conversation.
+ * @param uiModel
+ * @param query
+ * @param answer
+ * @param answerMetadata
+ * @param l? - set to `false` if you need only to convert answer with out opening "Chat with Ollama" command.
+ */
+export async function ConvertToChat(
+  uiModel: Types.UiModel,
+  query: string | undefined,
+  images: RaycastImage[] | undefined,
+  answer: string,
+  answerMetadata: OllamaApiGenerateResponse,
+  l = true
+): Promise<void> {
+  const s = await GetOllamaServerByName(uiModel.server.name);
+  const c: RaycastChat = {
+    name: `${query?.substring(0, 25)}...`,
+    models: {
+      main: {
+        server: s,
+        server_name: uiModel.server.name,
+        tag: uiModel.tag.name,
+        keep_alive: uiModel.keep_alive,
+      },
+    },
+    messages: [
+      {
+        messages: [
+          {
+            role: OllamaApiChatMessageRole.USER,
+            content: query ? query : "",
+            images: images ? images.map((i) => i.base64) : undefined
+          },
+          {
+            role: OllamaApiChatMessageRole.ASSISTANT,
+            content: answer,
+          },
+        ],
+        images: images,
+        ...answerMetadata,
+      },
+    ],
+  };
+  await AddSettingsCommandChat(c);
+  l && (await launchCommand({ name: "ollama-chat", type: LaunchType.UserInitiated }));
 }
 
 /**
@@ -84,6 +135,8 @@ async function Inference(
 export async function Run(
   model: Types.UiModel,
   prompt: string,
+  query: React.MutableRefObject<undefined | string>,
+  images: React.MutableRefObject<undefined | RaycastImage[]>,
   setLoading: React.Dispatch<React.SetStateAction<boolean>>,
   setImageView: React.Dispatch<React.SetStateAction<string>>,
   setAnswer: React.Dispatch<React.SetStateAction<string>>,
@@ -94,18 +147,20 @@ export async function Run(
   setLoading(true);
 
   // Loading Images if required
-  const images = await PromptTokenImageParser(prompt);
-  if (images) {
-    const i = images[1];
+  const imgs = await PromptTokenImageParser(prompt);
+  if (imgs) {
+    const i = imgs[1];
     setImageView("");
     i.forEach((i) => {
       setImageView((prevState) => prevState + i.html);
     });
     setImageView((prevState) => prevState + "\n");
+    images.current = imgs[1];
   }
 
   // Loading query
   prompt = await PromptTokenParser(prompt);
+  query.current = prompt;
 
   // Start Inference
   setAnswer("");
