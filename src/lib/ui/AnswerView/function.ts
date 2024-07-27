@@ -71,7 +71,7 @@ export async function ConvertToChat(
           {
             role: OllamaApiChatMessageRole.USER,
             content: query ? query : "",
-            images: images ? images.map((i) => i.base64) : undefined
+            images: images ? images.map((i) => i.base64) : undefined,
           },
           {
             role: OllamaApiChatMessageRole.ASSISTANT,
@@ -170,7 +170,7 @@ export async function Run(
     setLoading,
     setAnswer,
     setAnswerMetadata,
-    images && images[1] ? images[1].map((i) => i.base64) : undefined,
+    imgs && imgs[1] ? imgs[1].map((i) => i.base64) : undefined,
     creativity,
     keep_alive
   );
