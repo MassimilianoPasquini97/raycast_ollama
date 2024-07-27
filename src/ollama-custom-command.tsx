@@ -1,4 +1,4 @@
-import { getPreferenceValues, Icon, List } from "@raycast/api";
+import { getPreferenceValues, Icon, List, showToast, Toast } from "@raycast/api";
 import { Preferences, RaycastArgumentsOllamaCommandCustom } from "./lib/types";
 import { AnswerView } from "./lib/ui/AnswerView/main";
 
@@ -24,7 +24,9 @@ export default function Command(props: RaycastArgumentsOllamaCommandCustom): JSX
     server = props.arguments.model.substring(0, modelIndex);
     model = props.arguments.model.substring(modelIndex + 1);
     parameters = JSON.parse(props.arguments.parameters);
-  } catch {
+  } catch (e: any) {
+    console.error(e);
+    showToast({ style: Toast.Style.Failure, title: "Error", message: e.message });
     return listErrorLegacyArguments;
   }
   return (
