@@ -203,6 +203,12 @@ export function ModelView(): JSX.Element {
               onAction={() => setShowPullModelForm(true)}
               shortcut={{ modifiers: ["cmd"], key: "d" }}
             />
+            <Action.OpenInBrowser
+              title="Models Library"
+              icon={Icon.Globe}
+              url="https://ollama.com/library"
+              shortcut={{ modifiers: ["cmd"], key: "l" }}
+            />
           </ActionPanel.Section>
           <ActionPanel.Section title="Ollama Server">
             <Action title="Add Server" icon={Icon.NewDocument} onAction={() => setShowNewServerForm(true)} />
