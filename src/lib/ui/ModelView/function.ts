@@ -86,6 +86,21 @@ export async function GetModels(server: string): Promise<Types.UiModel[]> {
 }
 
 /**
+ * Update model pulling from the registry the latest version
+ * @param model.
+ * @param setDownload - setDownload Function.
+ * @param revalidate - RevalidateModel Function.
+ */
+export async function UpdateModel(
+  model: Types.UiModel,
+  setDownload: React.Dispatch<React.SetStateAction<Types.UiModelDownload[]>>,
+  revalidate: CallableFunction
+) {
+  const o = await GetServerClassByName(model.server.name);
+  await PullModel(o, model.server.name, model.detail.name, setDownload, revalidate);
+}
+
+/**
  * Delete Model.
  * @param model.
  * @param revalidate - revalidate function for reload all models.
