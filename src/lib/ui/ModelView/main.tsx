@@ -2,9 +2,10 @@ import * as Types from "./types";
 import * as React from "react";
 import { Action, ActionPanel, Icon, List } from "@raycast/api";
 import { getProgressIcon, usePromise } from "@raycast/utils";
-import { DeleteModel, DeleteServer, GetModels, GetServerArray, UpdateModel } from "./function";
+import { DeleteModel, DeleteServer, GetModels, UpdateModel } from "./function";
 import { FormPullModel } from "./form/PullModel";
 import { FormEditServer } from "./form/EditServer";
+import { GetServerArray } from "../function";
 import { GetOllamaServers } from "../../settings/settings";
 
 /**

@@ -5,19 +5,6 @@ import { showToast, Toast } from "@raycast/api";
 import { GetServerClass } from "../function";
 
 /**
- * Get Ollama Server Array.
- * @returns Servers Names Array.
- */
-export async function GetServerArray(): Promise<string[]> {
-  const s = await GetOllamaServers();
-  const a = [...s.keys()].sort();
-  const al = a.filter((v) => v === "Local");
-  const ao = a.filter((v) => v !== "Local");
-  if (a.length > 1) return ["All", ...al, ...ao];
-  return [...al, ...ao];
-}
-
-/**
  * Get Ollama Server Class.
  * @returns Server Map.
  */
