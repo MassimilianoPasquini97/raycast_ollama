@@ -1,5 +1,5 @@
 import * as Types from "./types";
-import { Action, ActionPanel, Icon, List } from "@raycast/api";
+import { Action, ActionPanel, Color, Icon, List } from "@raycast/api";
 import { usePromise } from "@raycast/utils";
 import React from "react";
 import { FormatOllamaPsModelExpireAtFormat, GetServerArray } from "../function";
@@ -85,11 +85,14 @@ export function PsView(): React.JSX.Element {
     if (SelectedServer === "All") accessories.push({ tag: Model.server.name, icon: Icon.HardDrive });
     if (Model.detail.size_vram)
       accessories.push({
-        tag: `${(Model.detail.size_vram / 1e9).toPrecision(2).toString()} GB`,
+        tag: { color: Color.PrimaryText, value: `${(Model.detail.size_vram / 1e9).toPrecision(2).toString()} GB` },
         icon: Icon.MemoryChip,
       });
     if (Model.detail.expires_at)
-      accessories.push({ tag: FormatOllamaPsModelExpireAtFormat(Model.detail.expires_at), icon: Icon.Hourglass });
+      accessories.push({
+        tag: { color: Color.PrimaryText, value: FormatOllamaPsModelExpireAtFormat(Model.detail.expires_at) },
+        icon: Icon.Hourglass,
+      });
 
     return accessories;
   }
