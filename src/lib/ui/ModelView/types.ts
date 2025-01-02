@@ -1,5 +1,5 @@
 import { Ollama } from "../../ollama/ollama";
-import { OllamaApiShowModelfile, OllamaApiShowResponse, OllamaApiTagsResponseModel } from "../../ollama/types";
+import { OllamaApiPsModel, OllamaApiShowModelfile, OllamaApiShowResponse, OllamaApiTagsResponseModel } from "../../ollama/types";
 
 export interface UiServer {
   name: string;
@@ -11,6 +11,7 @@ export interface UiModel {
   detail: OllamaApiTagsResponseModel;
   show: OllamaApiShowResponse;
   modelfile: OllamaApiShowModelfile;
+  ps?: OllamaApiPsModel;
 }
 
 export interface UiModelDownload {

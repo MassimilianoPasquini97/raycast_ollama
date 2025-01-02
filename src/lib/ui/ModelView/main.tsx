@@ -1,6 +1,6 @@
 import * as Types from "./types";
 import * as React from "react";
-import { Action, ActionPanel, Icon, List } from "@raycast/api";
+import { Action, ActionPanel, Color, Icon, List } from "@raycast/api";
 import { getProgressIcon, usePromise } from "@raycast/utils";
 import { DeleteModel, DeleteServer, GetModels, UpdateModel } from "./function";
 import { FormPullModel } from "./form/PullModel";
@@ -74,6 +74,7 @@ export function ModelView(): JSX.Element {
               icon={Icon.HardDrive}
               text={`${(prop.model.detail.size / 1e9).toPrecision(2).toString()} GB`}
             />
+            {prop.model.ps && <List.Item.Detail.Metadata.Label title="Memory freed at" text={prop.model.ps.expires_at} />}
             <List.Item.Detail.Metadata.Separator />
             <List.Item.Detail.Metadata.Label title="System Prompt" text={prop.model.show.system} />
             <List.Item.Detail.Metadata.Label title="Template" text={prop.model.show.template} />
@@ -154,6 +155,15 @@ export function ModelView(): JSX.Element {
         </ActionPanel.Section>
       </ActionPanel>
     );
+  }
+
+  function ModelAccessories(SelectedServer: string, Model: Types.UiModel) {
+    const accessories = [];
+
+    if (SelectedServer === "All") accessories.push({ tag: Model.server.name, icon: Icon.HardDrive });
+    if (Model.ps) accessories.push({ tag: { color: Color.Green, value: "In Memory" } });
+
+    return accessories;
   }
 
   React.useEffect(() => {
@@ -243,7 +253,7 @@ export function ModelView(): JSX.Element {
               id={`${item.server.name}_${item.detail.name}`}
               actions={<ModelAction model={item} />}
               detail={<ModelDetail model={item} />}
-              accessories={SelectedServer === "All" ? [{ tag: item.server.name, icon: Icon.HardDrive }] : []}
+              accessories={ModelAccessories(SelectedServer, item)}
             />
           );
         })}

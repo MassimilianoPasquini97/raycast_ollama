@@ -51,6 +51,10 @@ export async function GetModels(server: string): Promise<Types.UiModel[]> {
           await showToast({ style: Toast.Style.Failure, title: `'${s[0]}' Server`, message: e.message });
           return undefined;
         });
+        const ps = await s[1].OllamaApiPs().catch(async (e: Error) => {
+          await showToast({ style: Toast.Style.Failure, title: `'${s[0]}' Server`, message: e.message });
+          return undefined;
+        });
         if (!tag) return await Promise.resolve([] as Types.UiModel[]);
         return await Promise.all(
           tag.models.map(async (v): Promise<Types.UiModel> => {
@@ -63,6 +67,7 @@ export async function GetModels(server: string): Promise<Types.UiModel[]> {
               detail: v,
               show: show,
               modelfile: s[1].OllamaApiShowParseModelfile(show),
+              ps: ps && ps.models.filter((ps) => ps.name === v.name)[0],
             };
           })
         );
