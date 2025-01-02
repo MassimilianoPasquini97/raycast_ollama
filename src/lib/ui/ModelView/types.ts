@@ -1,5 +1,10 @@
 import { Ollama } from "../../ollama/ollama";
-import { OllamaApiPsModel, OllamaApiShowModelfile, OllamaApiShowResponse, OllamaApiTagsResponseModel } from "../../ollama/types";
+import {
+  OllamaApiPsModel,
+  OllamaApiShowModelfile,
+  OllamaApiShowResponse,
+  OllamaApiTagsResponseModel,
+} from "../../ollama/types";
 
 export interface UiServer {
   name: string;

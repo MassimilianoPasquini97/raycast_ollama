@@ -74,7 +74,9 @@ export function ModelView(): JSX.Element {
               icon={Icon.HardDrive}
               text={`${(prop.model.detail.size / 1e9).toPrecision(2).toString()} GB`}
             />
-            {prop.model.ps && <List.Item.Detail.Metadata.Label title="Memory freed at" text={prop.model.ps.expires_at} />}
+            {prop.model.ps && (
+              <List.Item.Detail.Metadata.Label title="Memory freed at" text={prop.model.ps.expires_at} />
+            )}
             <List.Item.Detail.Metadata.Separator />
             <List.Item.Detail.Metadata.Label title="System Prompt" text={prop.model.show.system} />
             <List.Item.Detail.Metadata.Label title="Template" text={prop.model.show.template} />
