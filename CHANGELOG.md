@@ -2,7 +2,7 @@
 
 ## [Fix] - 2025-02-24
 
-- [@wenLiangcan] Improved Ollama streaming processing leading to better performance when using remote Ollama server.
+- Improved Ollama streaming processing leading to better performance when using remote Ollama server.
 
 ## [Fix] - 2025-01-26
 
