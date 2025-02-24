@@ -603,7 +603,11 @@ export class Ollama {
    * @returns Response from the Ollama API with an EventEmitter with two event: `data` where all generated text is passed on `string` format and `done` when inference is finished returning an object contains all metadata of inference.
    * @private
    */
-  private async _OllamaApiStream<T extends {model: string}>(route: string, body: T, contentExtractor: (json: Types.OllamaApiChatResponse | Types.OllamaErrorResponse | undefined) => string | undefined): Promise<EventEmitter> {
+  private async _OllamaApiStream<T extends { model: string }>(
+    route: string,
+    body: T,
+    contentExtractor: (json: Types.OllamaApiChatResponse | Types.OllamaErrorResponse | undefined) => string | undefined
+  ): Promise<EventEmitter> {
     const url = `${this._server}${route}`;
     const req: RequestInit = {
       method: "POST",
@@ -613,7 +617,7 @@ export class Ollama {
     let emitter: EventEmitter | undefined;
 
     while (emitter === undefined) {
-      let part = '';
+      let part = "";
       emitter = await fetch(url, req)
         .then(async (response) => {
           if (!response.ok) {
@@ -641,20 +645,20 @@ export class Ollama {
               } else if ("error" in json && json.error) {
                 e.emit("error", json);
               }
-          }
+          };
 
           body?.on("data", (chunk) => {
             if (chunk !== undefined) {
               const buffer = Buffer.from(chunk);
               let jsonStr = buffer.toString();
-              if (part !== '') {
+              if (part !== "") {
                 jsonStr = part + jsonStr;
               }
-              for (const j of jsonStr.split('\n').filter(p => p !== '')) {
+              for (const j of jsonStr.split("\n").filter((p) => p !== "")) {
                 try {
                   const json = JSON.parse(j);
                   emitContent(json);
-                  part = '';
+                  part = "";
                 } catch (err) {
                   console.error(err);
                   part += j;
