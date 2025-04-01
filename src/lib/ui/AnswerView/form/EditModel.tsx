@@ -24,14 +24,22 @@ interface FormData {
 }
 
 export function EditModel(props: props): JSX.Element {
-  const { data: Model, isLoading: IsLoadingModel } = usePromise(GetModelsName, []);
-  const { handleSubmit, itemProps } = useForm<FormData>({
+  const { data: Model, isLoading: IsLoadingModel } = usePromise(GetModelsName, [], {
+    onData: (data) => {
+      if (props.server === undefined || props.model === undefined) return;
+
+      if (data.has(props.server)) {
+        setValue("server", props.server);
+        const models = data.get(props.server);
+        if (models?.filter((model) => model === props.model)) setValue("model", props.model);
+      }
+    },
+  });
+  const { handleSubmit, itemProps, setValue } = useForm<FormData>({
     onSubmit(values) {
       Submit(values);
     },
     initialValues: {
-      server: props.server,
-      model: props.model,
       keep_alive: props.keep_alive ? props.keep_alive : "5m",
     },
     validation: {
