@@ -35,7 +35,32 @@ interface FormData {
 }
 
 export function FormModel(props: props): JSX.Element {
-  const { data: Model, isLoading: IsLoadingModel } = usePromise(GetModelsName, []);
+  const { data: Model, isLoading: IsLoadingModel } = usePromise(GetModelsName, [], {
+    onData: (data) => {
+      if (props.Chat === undefined) return;
+
+      if (data.has(props.Chat.models.main.server_name)) {
+        setValue("serverMain", props.Chat.models.main.server_name);
+        const models = data.get(props.Chat.models.main.server_name) as string[];
+        if (models.filter((model) => model === props.Chat?.models.main.tag).length > 0)
+          setValue("modelMain", props.Chat.models.main.tag);
+      }
+
+      if (props.Chat.models.vision && data.has(props.Chat.models.vision.server_name)) {
+        setValue("serverVision", props.Chat.models.vision.server_name);
+        const models = data.get(props.Chat.models.vision.server_name) as string[];
+        if (models.filter((model) => model === props.Chat?.models.vision?.tag).length > 0)
+          setValue("modelVision", props.Chat.models.vision.tag);
+      }
+
+      if (props.Chat.models.embedding && data.has(props.Chat.models.embedding.server_name)) {
+        setValue("serverEmbedding", props.Chat.models.embedding.server_name);
+        const models = data.get(props.Chat.models.embedding.server_name) as string[];
+        if (models.filter((model) => model === props.Chat?.models.embedding?.tag).length > 0)
+          setValue("modelEmbedding", props.Chat.models.embedding.tag);
+      }
+    },
+  });
   const [CheckboxMainAdvanced, SetCheckboxMainAdvanced]: [boolean, React.Dispatch<React.SetStateAction<boolean>>] =
     React.useState(props.Chat && props.Chat.models.main.keep_alive ? true : false);
   const [CheckboxEmbedding, SetCheckboxEmbedding]: [boolean, React.Dispatch<React.SetStateAction<boolean>>] =
@@ -49,19 +74,13 @@ export function FormModel(props: props): JSX.Element {
   );
   const [CheckboxVisionAdvanced, SetCheckboxVisionAdvanced]: [boolean, React.Dispatch<React.SetStateAction<boolean>>] =
     React.useState(props.Chat?.models.vision && props.Chat.models.vision.keep_alive ? true : false);
-  const { handleSubmit, itemProps } = useForm<FormData>({
+  const { handleSubmit, itemProps, setValue } = useForm<FormData>({
     onSubmit(values) {
       Submit(values);
     },
     initialValues: {
-      serverMain: props.Chat ? props.Chat.models.main.server_name : undefined,
-      modelMain: props.Chat ? props.Chat.models.main.tag : undefined,
       keepAliveMain: props.Chat?.models.main.keep_alive ? props.Chat.models.main.keep_alive : "5m",
-      serverVision: props.Chat?.models.vision ? props.Chat.models.vision.server_name : undefined,
-      modelVision: props.Chat?.models.vision ? props.Chat.models.vision.tag : undefined,
       keepAliveVision: props.Chat?.models.vision?.keep_alive ? props.Chat.models.vision.keep_alive : "5m",
-      serverEmbedding: props.Chat?.models.embedding ? props.Chat.models.embedding.server_name : undefined,
-      modelEmbedding: props.Chat?.models.embedding ? props.Chat.models.embedding.tag : undefined,
       keepAliveEmbedding: props.Chat?.models.embedding?.keep_alive ? props.Chat.models.embedding.keep_alive : "5m",
     },
     validation: {
