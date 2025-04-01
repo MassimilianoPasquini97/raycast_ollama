@@ -1,7 +1,7 @@
 import * as Types from "./types";
 import * as React from "react";
 import { Action, ActionPanel, Color, Icon, List } from "@raycast/api";
-import { getProgressIcon, usePromise } from "@raycast/utils";
+import { getProgressIcon, usePromise, useLocalStorage } from "@raycast/utils";
 import { DeleteModel, DeleteServer, GetModels, UpdateModel } from "./function";
 import { FormPullModel } from "./form/PullModel";
 import { FormEditServer } from "./form/EditServer";
@@ -13,8 +13,11 @@ import { GetOllamaServers } from "../../settings/settings";
  * @returns {JSX.Element} Raycast Model View.
  */
 export function ModelView(): JSX.Element {
-  const [SelectedServer, setSelectedServer]: [string, React.Dispatch<React.SetStateAction<string>>] =
-    React.useState("Local");
+  const {
+    value: SelectedServer,
+    setValue: setSelectedServer,
+    isLoading: isLoadingSelectedServer,
+  } = useLocalStorage<string>("ollama_server_selected", "Local");
   const { data: Servers, isLoading: IsLoadingServers, revalidate: RevalidateServers } = usePromise(GetServerArray);
   const { data: ServersSettings, revalidate: RevalidateServersSettings } = usePromise(GetOllamaServers);
   const {
@@ -144,7 +147,7 @@ export function ModelView(): JSX.Element {
           {SelectedServer !== "All" && SelectedServer !== "Local" && (
             <Action title="Edit Server" icon={Icon.Pencil} onAction={() => setShowEditServerForm(true)} />
           )}
-          {SelectedServer !== "All" && SelectedServer !== "Local" && (
+          {SelectedServer !== "All" && SelectedServer !== "Local" && SelectedServer !== undefined && (
             <ActionPanel.Submenu title="Delete Server" icon={Icon.DeleteDocument}>
               <Action
                 title={`Yes, Delete "${prop.model.server.name}" Server`}
@@ -159,7 +162,7 @@ export function ModelView(): JSX.Element {
     );
   }
 
-  function ModelAccessories(SelectedServer: string, Model: Types.UiModel) {
+  function ModelAccessories(SelectedServer: string | undefined, Model: Types.UiModel) {
     const accessories = [];
 
     if (SelectedServer === "All") accessories.push({ tag: Model.server.name, icon: Icon.HardDrive });
@@ -190,7 +193,7 @@ export function ModelView(): JSX.Element {
         setDownload={setDownload}
         revalidate={RevalidateModels}
         servers={Servers.filter((s) => s !== "All")}
-        selectedServer={SelectedServer}
+        selectedServer={SelectedServer as string}
       />
     );
 
@@ -203,14 +206,14 @@ export function ModelView(): JSX.Element {
         setShow={setShowEditServerForm}
         revalidate={RevalidateServers}
         servers={Servers}
-        server={ServersSettings.get(SelectedServer)}
+        server={ServersSettings.get(SelectedServer as string)}
         name={SelectedServer}
       />
     );
 
   return (
     <List
-      isLoading={IsLoadingModels || IsLoadingServers}
+      isLoading={isLoadingSelectedServer || IsLoadingModels || IsLoadingServers}
       isShowingDetail={showDetail}
       searchBarAccessory={SearchBarAccessory()}
       actions={
@@ -231,10 +234,10 @@ export function ModelView(): JSX.Element {
           </ActionPanel.Section>
           <ActionPanel.Section title="Ollama Server">
             <Action title="Add Server" icon={Icon.NewDocument} onAction={() => setShowNewServerForm(true)} />
-            {SelectedServer !== "All" && SelectedServer !== "Local" && (
+            {SelectedServer !== "All" && SelectedServer !== "Local" && SelectedServer !== undefined && (
               <Action title="Edit Server" icon={Icon.Pencil} onAction={() => setShowEditServerForm(true)} />
             )}
-            {SelectedServer !== "All" && SelectedServer !== "Local" && (
+            {SelectedServer !== "All" && SelectedServer !== "Local" && SelectedServer !== undefined && (
               <Action
                 title="Delete Server"
                 icon={Icon.DeleteDocument}

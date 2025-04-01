@@ -1,13 +1,16 @@
 import * as Types from "./types";
 import { Action, ActionPanel, Color, Icon, List } from "@raycast/api";
-import { usePromise } from "@raycast/utils";
+import { usePromise, useLocalStorage } from "@raycast/utils";
 import React from "react";
 import { FormatOllamaPsModelExpireAtFormat, GetServerArray } from "../function";
 import { GetModels } from "./function";
 
 export function PsView(): React.JSX.Element {
-  const [SelectedServer, setSelectedServer]: [string, React.Dispatch<React.SetStateAction<string>>] =
-    React.useState("Local");
+  const {
+    value: SelectedServer,
+    setValue: setSelectedServer,
+    isLoading: isLoadingSelectedServer,
+  } = useLocalStorage<string>("ollama_server_selected", "Local");
   const { data: Servers, isLoading: IsLoadingServers } = usePromise(GetServerArray);
   const {
     data: Models,
@@ -79,7 +82,7 @@ export function PsView(): React.JSX.Element {
     );
   }
 
-  function ModelAccessories(SelectedServer: string, Model: Types.UiModel) {
+  function ModelAccessories(SelectedServer: string | undefined, Model: Types.UiModel) {
     const accessories = [];
 
     if (SelectedServer === "All") accessories.push({ tag: Model.server.name, icon: Icon.HardDrive });
@@ -110,7 +113,7 @@ export function PsView(): React.JSX.Element {
 
   return (
     <List
-      isLoading={IsLoadingModels || IsLoadingServers}
+      isLoading={isLoadingSelectedServer || IsLoadingModels || IsLoadingServers}
       isShowingDetail={showDetail}
       searchBarAccessory={SearchBarAccessory()}
     >
