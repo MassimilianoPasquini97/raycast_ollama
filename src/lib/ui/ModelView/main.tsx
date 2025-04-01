@@ -249,6 +249,7 @@ export function ModelView(): JSX.Element {
       }
     >
       {Models &&
+        Models.length > 0 &&
         Models.map((item) => {
           return (
             <List.Item
@@ -274,6 +275,13 @@ export function ModelView(): JSX.Element {
             />
           );
       })}
+      {(Models === undefined || Models.length === 0) && (Download === undefined || Download.length === 0) && (
+        <List.EmptyView
+          icon={Icon.Download}
+          title="No Models Installed."
+          description="No model is currently installed on this server. You can download a new model using the ⌘+D shortcut."
+        />
+      )}
     </List>
   );
 }

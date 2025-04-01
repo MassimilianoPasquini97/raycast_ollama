@@ -117,7 +117,7 @@ export function PsView(): React.JSX.Element {
       isShowingDetail={showDetail}
       searchBarAccessory={SearchBarAccessory()}
     >
-      {Models &&
+      {Models && Models.length > 0 ? (
         Models.map((item) => {
           return (
             <List.Item
@@ -130,7 +130,14 @@ export function PsView(): React.JSX.Element {
               accessories={ModelAccessories(SelectedServer, item)}
             />
           );
-        })}
+        })
+      ) : (
+        <List.EmptyView
+          icon={Icon.MemoryChip}
+          title="No Model is Loaded in Memory"
+          description="No model is currently loaded."
+        />
+      )}
     </List>
   );
 }
