@@ -6,6 +6,7 @@ import { FormatOllamaPsModelExpireAtFormat, GetServerArray } from "../function";
 import { GetModels } from "./function";
 
 export function PsView(): React.JSX.Element {
+  const abort = React.useRef(new AbortController());
   const {
     value: SelectedServer,
     setValue: setSelectedServer,
@@ -16,7 +17,7 @@ export function PsView(): React.JSX.Element {
     data: Models,
     isLoading: IsLoadingModels,
     revalidate: RevalidateModels,
-  } = usePromise(GetModels, [SelectedServer]);
+  } = usePromise(GetModels, [SelectedServer], { abortable: abort });
   const [showDetail, setShowDetail]: [boolean, React.Dispatch<React.SetStateAction<boolean>>] = React.useState(false);
 
   function SearchBarAccessory(): JSX.Element {

@@ -13,6 +13,7 @@ import { GetOllamaServers } from "../../settings/settings";
  * @returns {JSX.Element} Raycast Model View.
  */
 export function ModelView(): JSX.Element {
+  const abort = React.useRef(new AbortController());
   const {
     value: SelectedServer,
     setValue: setSelectedServer,
@@ -24,7 +25,7 @@ export function ModelView(): JSX.Element {
     data: Models,
     isLoading: IsLoadingModels,
     revalidate: RevalidateModels,
-  } = usePromise(GetModels, [SelectedServer]);
+  } = usePromise(GetModels, [SelectedServer], { abortable: abort });
   const [Download, setDownload]: [
     Types.UiModelDownload[],
     React.Dispatch<React.SetStateAction<Types.UiModelDownload[]>>
