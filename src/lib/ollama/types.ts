@@ -165,6 +165,7 @@ export interface OllamaApiPullResponse {
 export interface OllamaApiChatRequestBody {
   model: string;
   messages: OllamaApiChatMessage[];
+  tools?: OllamaApiTool[];
   stream?: boolean;
   format?: string;
   keep_alive?: string;
@@ -176,6 +177,42 @@ export interface OllamaApiChatMessage {
   role: Enum.OllamaApiChatMessageRole;
   content: string;
   images?: string[];
+  tool_calls?: OllamaApiChatMessageToolCall[];
+}
+
+export interface OllamaApiChatMessageToolCall {
+  function: {
+    index?: number;
+    name: string;
+    arguments: {
+      [key: string]: any;
+    };
+  };
+}
+
+export interface OllamaApiTool {
+  type: "function";
+  function: OllamaApiToolFunction;
+}
+
+export interface OllamaApiToolFunction {
+  name: string;
+  description: string;
+  parameters: OllamaApiToolFunctionParameters;
+}
+
+export interface OllamaApiToolFunctionParameters {
+  type: "object";
+  required: string[];
+  properties: {
+    [name: string]: OllamaApiToolFunctionParameter;
+  };
+}
+
+export interface OllamaApiToolFunctionParameter {
+  type: string;
+  description: string;
+  enum?: string[];
 }
 
 export interface OllamaApiPsResponse {

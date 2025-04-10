@@ -14,7 +14,7 @@ import {
   OllamaServerAuth,
 } from "../../ollama/types";
 import { AddSettingsCommandChat, GetSettingsCommandChatByIndex } from "../../settings/settings";
-import { RaycastChat, RaycastChatMessage, SettingsChatModel } from "../../settings/types";
+import { RaycastChat, SettingsChatModel } from "../../settings/types";
 import { Preferences, RaycastImage } from "../../types";
 import { GetAvailableModel, PromptTokenParser } from "../function";
 import "../../polyfill/node-fetch";
