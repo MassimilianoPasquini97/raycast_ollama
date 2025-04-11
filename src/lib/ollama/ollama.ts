@@ -468,7 +468,7 @@ export class Ollama {
     const parameters = this._OllamaApiShowParseModelfileParameterSplit(show.parameters);
 
     return {
-      from: this._OllamaApiShowParseModelfileFrom(show.template),
+      from: show.template && this._OllamaApiShowParseModelfileFrom(show.template),
       parameter: {
         mirostat: parameters.length > 0 ? this._OllamaApiShowParseModelfileParameterMirostat(parameters) : 0,
         mirostat_eta: parameters.length > 0 ? this._OllamaApiShowParseModelfileParameterMirostatEta(parameters) : 0.1,
@@ -489,9 +489,9 @@ export class Ollama {
         top_p: parameters.length > 0 ? this._OllamaApiShowParseModelfileParameterTopP(parameters) : 0.9,
       },
       template: show.template,
-      system: this._OllamaApiShowParseModelfileSystem(show.template),
+      system: show.template && this._OllamaApiShowParseModelfileSystem(show.template),
       adapter: this._OllamaApiShowParseModelfileParameterAdapter(parameters),
-      license: this._OllamaApiShowParseModelfileLicense(show.template),
+      license: show.template && this._OllamaApiShowParseModelfileLicense(show.template),
     };
   }
 

@@ -1,6 +1,7 @@
 import { Action, ActionPanel, Form, Icon } from "@raycast/api";
 import { FormValidation, useForm, usePromise } from "@raycast/utils";
 import * as React from "react";
+import { OllamaApiModelCapability } from "../../../ollama/enum";
 import { OllamaServer } from "../../../ollama/types";
 import {
   AddSettingsCommandChat,
@@ -11,6 +12,7 @@ import {
 import { RaycastChat } from "../../../settings/types";
 import { GetModelsName } from "../../function";
 import { InfoKeepAlive } from "../../info";
+import { UiModelDetails } from "../../types";
 import { ValidationKeepAlive } from "../../valitadion";
 
 interface props {
@@ -41,22 +43,31 @@ export function FormModel(props: props): JSX.Element {
 
       if (data.has(props.Chat.models.main.server_name)) {
         setValue("serverMain", props.Chat.models.main.server_name);
-        const models = data.get(props.Chat.models.main.server_name) as string[];
-        if (models.filter((model) => model === props.Chat?.models.main.tag).length > 0)
+        const models = (data.get(props.Chat.models.main.server_name) as UiModelDetails[]).filter(
+          (model) =>
+            model.capabilities && model.capabilities.findIndex((c) => c === OllamaApiModelCapability.COMPLETION) !== -1
+        );
+        if (models.filter((model) => model.name === props.Chat?.models.main.tag).length > 0)
           setValue("modelMain", props.Chat.models.main.tag);
       }
 
       if (props.Chat.models.vision && data.has(props.Chat.models.vision.server_name)) {
         setValue("serverVision", props.Chat.models.vision.server_name);
-        const models = data.get(props.Chat.models.vision.server_name) as string[];
-        if (models.filter((model) => model === props.Chat?.models.vision?.tag).length > 0)
+        const models = (data.get(props.Chat.models.vision.server_name) as UiModelDetails[]).filter(
+          (model) =>
+            model.capabilities && model.capabilities.findIndex((c) => c === OllamaApiModelCapability.VISION) !== -1
+        );
+        if (models.filter((model) => model.name === props.Chat?.models.vision?.tag).length > 0)
           setValue("modelVision", props.Chat.models.vision.tag);
       }
 
       if (props.Chat.models.embedding && data.has(props.Chat.models.embedding.server_name)) {
         setValue("serverEmbedding", props.Chat.models.embedding.server_name);
-        const models = data.get(props.Chat.models.embedding.server_name) as string[];
-        if (models.filter((model) => model === props.Chat?.models.embedding?.tag).length > 0)
+        const models = (data.get(props.Chat.models.embedding.server_name) as UiModelDetails[]).filter(
+          (model) =>
+            model.capabilities && model.capabilities.findIndex((c) => c === OllamaApiModelCapability.EMBEDDING) !== -1
+        );
+        if (models.filter((model) => model.name === props.Chat?.models.embedding?.tag).length > 0)
           setValue("modelEmbedding", props.Chat.models.embedding.tag);
       }
     },
@@ -211,9 +222,12 @@ export function FormModel(props: props): JSX.Element {
         <Form.Dropdown title="Model" info={InfoModel} {...itemProps.modelMain}>
           {[...Model.entries()]
             .filter((v) => v[0] === itemProps.serverMain.value)[0][1]
+            .filter(
+              (t) => t.capabilities && t.capabilities.findIndex((c) => c === OllamaApiModelCapability.COMPLETION) !== -1
+            )
             .sort()
             .map((s) => (
-              <Form.Dropdown.Item title={s} value={s} key={s} />
+              <Form.Dropdown.Item title={s.name} value={s.name} key={s.name} />
             ))}
         </Form.Dropdown>
       )}
@@ -246,9 +260,12 @@ export function FormModel(props: props): JSX.Element {
         <Form.Dropdown title="Model" info={InfoModel} {...itemProps.modelEmbedding}>
           {[...Model.entries()]
             .filter((v) => v[0] === itemProps.serverEmbedding.value)[0][1]
+            .filter(
+              (t) => t.capabilities && t.capabilities.findIndex((c) => c === OllamaApiModelCapability.EMBEDDING) !== -1
+            )
             .sort()
             .map((s) => (
-              <Form.Dropdown.Item title={s} value={s} key={s} />
+              <Form.Dropdown.Item title={s.name} value={s.name} key={s.name} />
             ))}
         </Form.Dropdown>
       )}
@@ -283,9 +300,12 @@ export function FormModel(props: props): JSX.Element {
         <Form.Dropdown title="Model" info={InfoModel} {...itemProps.modelVision}>
           {[...Model.entries()]
             .filter((v) => v[0] === itemProps.serverVision.value)[0][1]
+            .filter(
+              (t) => t.capabilities && t.capabilities.findIndex((c) => c === OllamaApiModelCapability.VISION) !== -1
+            )
             .sort()
             .map((s) => (
-              <Form.Dropdown.Item title={s} value={s} key={s} />
+              <Form.Dropdown.Item title={s.name} value={s.name} key={s.name} />
             ))}
         </Form.Dropdown>
       )}

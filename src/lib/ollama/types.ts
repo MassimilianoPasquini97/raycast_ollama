@@ -103,11 +103,21 @@ export interface OllamaApiTagsResponse {
 
 export interface OllamaApiShowResponse {
   license?: string;
-  modelfile: string;
+  modelfile?: string;
   parameters?: string;
-  template: string;
+  template?: string;
   system?: string;
-  detail?: OllamaApiShowDetail;
+  details?: OllamaApiShowDetail;
+  messages?: OllamaApiChatMessage[];
+  model_info?: {
+    [name: string]: any;
+  };
+  projector_info?: {
+    [name: string]: any;
+  };
+  tensors?: OllamaApiTensor[];
+  capabilities?: Enum.OllamaApiModelCapability[];
+  modified_at?: string;
 }
 
 export interface OllamaApiShowDetail {
@@ -118,10 +128,16 @@ export interface OllamaApiShowDetail {
   quantization_level: string;
 }
 
+export interface OllamaApiTensor {
+  name: string;
+  type: string;
+  shape: number[];
+}
+
 export interface OllamaApiShowModelfile {
-  from: string;
+  from?: string;
   parameter: OllamaApiShowModelfileParameter;
-  template: string;
+  template?: string;
   system?: string;
   adapter?: string;
   license?: string;

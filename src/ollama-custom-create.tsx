@@ -89,7 +89,7 @@ The following tags are supported:
             .filter((v) => v[0] === itemProps.server.value)[0][1]
             .sort()
             .map((s) => (
-              <Form.Dropdown.Item title={s} value={s} key={s} />
+              <Form.Dropdown.Item title={s.name} value={s.name} key={s.name} />
             ))}
         </Form.Dropdown>
       )}

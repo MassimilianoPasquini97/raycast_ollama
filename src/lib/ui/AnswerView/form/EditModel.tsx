@@ -1,17 +1,20 @@
 import { Action, ActionPanel, Form, Icon } from "@raycast/api";
 import { FormValidation, useForm, usePromise } from "@raycast/utils";
 import * as React from "react";
+import { OllamaApiModelCapability } from "../../../ollama/enum";
 import { CommandAnswer } from "../../../settings/enum";
 import { GetOllamaServerByName, SetSettingsCommandAnswer } from "../../../settings/settings";
 import { SettingsCommandAnswer } from "../../../settings/types";
 import { GetModelsName } from "../../function";
 import { InfoKeepAlive } from "../../info";
+import { UiModelDetails } from "../../types";
 import { ValidationKeepAlive } from "../../valitadion";
 
 interface props {
   setShow: React.Dispatch<React.SetStateAction<boolean>>;
   revalidate: CallableFunction;
   command: CommandAnswer;
+  capabilities?: OllamaApiModelCapability[];
   server?: string;
   model?: string;
   keep_alive?: string;
@@ -30,8 +33,19 @@ export function EditModel(props: props): JSX.Element {
 
       if (data.has(props.server)) {
         setValue("server", props.server);
-        const models = data.get(props.server);
-        if (models?.filter((model) => model === props.model)) setValue("model", props.model);
+        const models = (data.get(props.server) as UiModelDetails[]).filter((model) => {
+          if (!model.capabilities || !props.capabilities || model.capabilities.length < props.capabilities.length)
+            return false;
+          if (
+            props.capabilities.length !==
+            model.capabilities.filter(
+              (c) => props.capabilities && props.capabilities.findIndex((rc) => rc === c) !== -1
+            ).length
+          )
+            return false;
+          return true;
+        });
+        if (models?.filter((model) => model.name === props.model)) setValue("model", props.model);
       }
     },
   });
@@ -89,9 +103,21 @@ export function EditModel(props: props): JSX.Element {
         <Form.Dropdown title="Model" {...itemProps.model}>
           {[...Model.entries()]
             .filter((v) => v[0] === itemProps.server.value)[0][1]
+            .filter((model) => {
+              if (!model.capabilities || !props.capabilities || model.capabilities.length < props.capabilities.length)
+                return false;
+              if (
+                props.capabilities.length !==
+                model.capabilities.filter(
+                  (c) => props.capabilities && props.capabilities.findIndex((rc) => rc === c) !== -1
+                ).length
+              )
+                return false;
+              return true;
+            })
             .sort()
             .map((s) => (
-              <Form.Dropdown.Item title={s} value={s} key={s} />
+              <Form.Dropdown.Item title={s.name} value={s.name} key={s.name} />
             ))}
         </Form.Dropdown>
       )}
