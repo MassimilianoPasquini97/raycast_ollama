@@ -85,7 +85,7 @@ export async function GetServerClass(): Promise<Map<string, Ollama>> {
  * Get Ollama Available Models.
  * @returns Map with All Available Model.
  */
-export async function GetModelsName(): Promise<Map<string, UiModelDetails[]>> {
+export async function GetModels(): Promise<Map<string, UiModelDetails[]>> {
   const o = new Map<string, UiModelDetails[]>();
   const s = await GetServerClass();
   await Promise.all(

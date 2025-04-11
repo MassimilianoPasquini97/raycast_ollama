@@ -5,7 +5,7 @@ import { OllamaApiModelCapability } from "../../../ollama/enum";
 import { CommandAnswer } from "../../../settings/enum";
 import { GetOllamaServerByName, SetSettingsCommandAnswer } from "../../../settings/settings";
 import { SettingsCommandAnswer } from "../../../settings/types";
-import { GetModelsName } from "../../function";
+import { GetModels } from "../../function";
 import { InfoKeepAlive } from "../../info";
 import { UiModelDetails } from "../../types";
 import { ValidationKeepAlive } from "../../valitadion";
@@ -27,7 +27,7 @@ interface FormData {
 }
 
 export function EditModel(props: props): JSX.Element {
-  const { data: Model, isLoading: IsLoadingModel } = usePromise(GetModelsName, [], {
+  const { data: Model, isLoading: IsLoadingModel } = usePromise(GetModels, [], {
     onData: (data) => {
       if (props.server === undefined || props.model === undefined) return;
 
@@ -101,24 +101,22 @@ export function EditModel(props: props): JSX.Element {
       )}
       {!IsLoadingModel && Model && itemProps.server.value && (
         <Form.Dropdown title="Model" {...itemProps.model}>
-          {[...Model.entries()]
-            .filter((v) => v[0] === itemProps.server.value)[0][1]
-            .filter((model) => {
-              if (!model.capabilities || !props.capabilities || model.capabilities.length < props.capabilities.length)
-                return false;
-              if (
-                props.capabilities.length !==
-                model.capabilities.filter(
-                  (c) => props.capabilities && props.capabilities.findIndex((rc) => rc === c) !== -1
-                ).length
-              )
-                return false;
-              return true;
-            })
-            .sort()
-            .map((s) => (
-              <Form.Dropdown.Item title={s.name} value={s.name} key={s.name} />
-            ))}
+          {itemProps.server.value &&
+            Model.get(itemProps.server.value)!
+              .filter((model) => {
+                if (!model.capabilities || !props.capabilities || model.capabilities.length < props.capabilities.length)
+                  return false;
+                if (
+                  props.capabilities.length !==
+                  model.capabilities.filter(
+                    (c) => props.capabilities && props.capabilities.findIndex((rc) => rc === c) !== -1
+                  ).length
+                )
+                  return false;
+                return true;
+              })
+              .sort()
+              .map((s) => <Form.Dropdown.Item title={s.name} value={s.name} key={s.name} />)}
         </Form.Dropdown>
       )}
       <Form.Checkbox

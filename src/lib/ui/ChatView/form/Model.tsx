@@ -10,7 +10,7 @@ import {
   SetSettingsCommandChatByIndex,
 } from "../../../settings/settings";
 import { RaycastChat } from "../../../settings/types";
-import { GetModelsName } from "../../function";
+import { GetModels } from "../../function";
 import { InfoKeepAlive } from "../../info";
 import { UiModelDetails } from "../../types";
 import { ValidationKeepAlive } from "../../valitadion";
@@ -37,7 +37,7 @@ interface FormData {
 }
 
 export function FormModel(props: props): JSX.Element {
-  const { data: Model, isLoading: IsLoadingModel } = usePromise(GetModelsName, [], {
+  const { data: Model, isLoading: IsLoadingModel } = usePromise(GetModels, [], {
     onData: (data) => {
       if (props.Chat === undefined) return;
 
@@ -211,111 +211,109 @@ export function FormModel(props: props): JSX.Element {
 
   return (
     <Form actions={ActionView} isLoading={IsLoadingModel}>
-      {!IsLoadingModel && Model && (
-        <Form.Dropdown title="Server" info={InfoServer} {...itemProps.serverMain}>
-          {[...Model.keys()].sort().map((s) => (
-            <Form.Dropdown.Item title={s} value={s} key={s} />
-          ))}
-        </Form.Dropdown>
-      )}
-      {!IsLoadingModel && Model && itemProps.serverMain.value && (
-        <Form.Dropdown title="Model" info={InfoModel} {...itemProps.modelMain}>
-          {[...Model.entries()]
-            .filter((v) => v[0] === itemProps.serverMain.value)[0][1]
-            .filter(
-              (t) => t.capabilities && t.capabilities.findIndex((c) => c === OllamaApiModelCapability.COMPLETION) !== -1
-            )
-            .sort()
-            .map((s) => (
-              <Form.Dropdown.Item title={s.name} value={s.name} key={s.name} />
+      {!IsLoadingModel && Model && itemProps && (
+        <React.Fragment>
+          <Form.Dropdown title="Server" info={InfoServer} {...itemProps.serverMain}>
+            {[...Model.keys()].sort().map((s) => (
+              <Form.Dropdown.Item title={s} value={s} key={s} />
             ))}
-        </Form.Dropdown>
-      )}
-      {!IsLoadingModel && Model && itemProps.serverMain.value && (
-        <Form.Checkbox
-          id="advancedMain"
-          label="Advanced Settings"
-          defaultValue={CheckboxMainAdvanced}
-          onChange={SetCheckboxMainAdvanced}
-        />
+          </Form.Dropdown>
+          <Form.Dropdown title="Model" info={InfoModel} {...itemProps.modelMain}>
+            {itemProps.serverMain.value &&
+              Model.get(itemProps.serverMain.value)!
+                .filter(
+                  (t) =>
+                    t.capabilities && t.capabilities.findIndex((c) => c === OllamaApiModelCapability.COMPLETION) !== -1
+                )
+                .sort()
+                .map((s) => <Form.Dropdown.Item title={s.name} value={s.name} key={s.name} />)}
+          </Form.Dropdown>
+          <Form.Checkbox
+            id="advancedMain"
+            label="Advanced Settings"
+            defaultValue={CheckboxMainAdvanced}
+            onChange={SetCheckboxMainAdvanced}
+          />
+        </React.Fragment>
       )}
       {CheckboxMainAdvanced && <Form.TextField title="Keep Alive" info={InfoKeepAlive} {...itemProps.keepAliveMain} />}
-      <Form.Separator />
-      <Form.Checkbox
-        id="embedding"
-        info={InfoEmbeddingCheckbox}
-        title="Embedding"
-        label="Use Different Model"
-        defaultValue={CheckboxEmbedding}
-        onChange={SetCheckboxEmbedding}
-      />
-      {!IsLoadingModel && Model && CheckboxEmbedding && (
-        <Form.Dropdown title="Server" info={InfoServer} {...itemProps.serverEmbedding}>
-          {[...Model.keys()].sort().map((s) => (
-            <Form.Dropdown.Item title={s} value={s} key={s} />
-          ))}
-        </Form.Dropdown>
+      {!IsLoadingModel && Model && (
+        <React.Fragment>
+          <Form.Separator />
+          <Form.Checkbox
+            id="embedding"
+            info={InfoEmbeddingCheckbox}
+            title="Embedding"
+            label="Use Different Model"
+            defaultValue={CheckboxEmbedding}
+            onChange={SetCheckboxEmbedding}
+          />
+        </React.Fragment>
       )}
-      {!IsLoadingModel && Model && itemProps.serverEmbedding.value && CheckboxEmbedding && (
-        <Form.Dropdown title="Model" info={InfoModel} {...itemProps.modelEmbedding}>
-          {[...Model.entries()]
-            .filter((v) => v[0] === itemProps.serverEmbedding.value)[0][1]
-            .filter(
-              (t) => t.capabilities && t.capabilities.findIndex((c) => c === OllamaApiModelCapability.EMBEDDING) !== -1
-            )
-            .sort()
-            .map((s) => (
-              <Form.Dropdown.Item title={s.name} value={s.name} key={s.name} />
+      {!IsLoadingModel && Model && itemProps && CheckboxEmbedding && (
+        <React.Fragment>
+          <Form.Dropdown title="Server" info={InfoServer} {...itemProps.serverEmbedding}>
+            {[...Model.keys()].sort().map((s) => (
+              <Form.Dropdown.Item title={s} value={s} key={s} />
             ))}
-        </Form.Dropdown>
-      )}
-      {!IsLoadingModel && Model && itemProps.serverEmbedding.value && CheckboxEmbedding && (
-        <Form.Checkbox
-          id="advancedEmbedding"
-          label="Advanced Settings"
-          defaultValue={CheckboxEmbeddingAdvanced}
-          onChange={SetCheckboxEmbeddingAdvanced}
-        />
+          </Form.Dropdown>
+          <Form.Dropdown title="Model" info={InfoModel} {...itemProps.modelEmbedding}>
+            {itemProps.serverEmbedding.value &&
+              Model.get(itemProps.serverEmbedding.value)!
+                .filter(
+                  (t) =>
+                    t.capabilities && t.capabilities.findIndex((c) => c === OllamaApiModelCapability.EMBEDDING) !== -1
+                )
+                .sort()
+                .map((s) => <Form.Dropdown.Item title={s.name} value={s.name} key={s.name} />)}
+          </Form.Dropdown>
+          <Form.Checkbox
+            id="advancedEmbedding"
+            label="Advanced Settings"
+            defaultValue={CheckboxEmbeddingAdvanced}
+            onChange={SetCheckboxEmbeddingAdvanced}
+          />
+        </React.Fragment>
       )}
       {CheckboxEmbeddingAdvanced && (
         <Form.TextField title="Keep Alive" info={InfoKeepAlive} {...itemProps.keepAliveEmbedding} />
       )}
-      <Form.Separator />
-      <Form.Checkbox
-        id="vision"
-        info={InfoVisionCheckbox}
-        title="Vision"
-        label="Use Different Model"
-        defaultValue={CheckboxVision}
-        onChange={SetCheckboxVision}
-      />
-      {!IsLoadingModel && Model && CheckboxVision && (
-        <Form.Dropdown title="Server" info={InfoServer} {...itemProps.serverVision}>
-          {[...Model.keys()].sort().map((s) => (
-            <Form.Dropdown.Item title={s} value={s} key={s} />
-          ))}
-        </Form.Dropdown>
+      {!IsLoadingModel && Model && (
+        <React.Fragment>
+          <Form.Separator />
+          <Form.Checkbox
+            id="vision"
+            info={InfoVisionCheckbox}
+            title="Vision"
+            label="Use Different Model"
+            defaultValue={CheckboxVision}
+            onChange={SetCheckboxVision}
+          />
+        </React.Fragment>
       )}
-      {!IsLoadingModel && Model && itemProps.serverVision.value && CheckboxVision && (
-        <Form.Dropdown title="Model" info={InfoModel} {...itemProps.modelVision}>
-          {[...Model.entries()]
-            .filter((v) => v[0] === itemProps.serverVision.value)[0][1]
-            .filter(
-              (t) => t.capabilities && t.capabilities.findIndex((c) => c === OllamaApiModelCapability.VISION) !== -1
-            )
-            .sort()
-            .map((s) => (
-              <Form.Dropdown.Item title={s.name} value={s.name} key={s.name} />
+      {!IsLoadingModel && Model && itemProps && CheckboxVision && (
+        <React.Fragment>
+          <Form.Dropdown title="Server" info={InfoServer} {...itemProps.serverVision}>
+            {[...Model.keys()].sort().map((s) => (
+              <Form.Dropdown.Item title={s} value={s} key={s} />
             ))}
-        </Form.Dropdown>
-      )}
-      {!IsLoadingModel && Model && itemProps.serverVision.value && CheckboxVision && (
-        <Form.Checkbox
-          id="advancedVision"
-          label="Advanced Settings"
-          defaultValue={CheckboxVisionAdvanced}
-          onChange={SetCheckboxVisionAdvanced}
-        />
+          </Form.Dropdown>
+          <Form.Dropdown title="Model" info={InfoModel} {...itemProps.modelVision}>
+            {itemProps.serverVision.value &&
+              Model.get(itemProps.serverVision.value)!
+                .filter(
+                  (t) => t.capabilities && t.capabilities.findIndex((c) => c === OllamaApiModelCapability.VISION) !== -1
+                )
+                .sort()
+                .map((s) => <Form.Dropdown.Item title={s.name} value={s.name} key={s.name} />)}
+          </Form.Dropdown>
+          <Form.Checkbox
+            id="advancedVision"
+            label="Advanced Settings"
+            defaultValue={CheckboxVisionAdvanced}
+            onChange={SetCheckboxVisionAdvanced}
+          />
+        </React.Fragment>
       )}
       {CheckboxVisionAdvanced && (
         <Form.TextField title="Keep Alive" info={InfoKeepAlive} {...itemProps.keepAliveVision} />
