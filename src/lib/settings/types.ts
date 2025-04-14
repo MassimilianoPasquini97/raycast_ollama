@@ -41,6 +41,7 @@ export interface RaycastChat {
   name: string;
   models: SettingsChatModels;
   messages: RaycastChatMessage[];
+  mcp_server?: string[];
 }
 
 export interface RaycastChatMessage extends OllamaApiGenerateStats {

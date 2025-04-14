@@ -1,6 +1,7 @@
 import { Action, ActionPanel, Form, Icon } from "@raycast/api";
-import { FormValidation, useForm, usePromise } from "@raycast/utils";
+import { FormValidation, useForm, useLocalStorage, usePromise } from "@raycast/utils";
 import * as React from "react";
+import { McpServerConfig } from "../../../mcp/types";
 import { OllamaApiModelCapability } from "../../../ollama/enum";
 import { OllamaServer } from "../../../ollama/types";
 import {
@@ -37,6 +38,7 @@ interface FormData {
   serverEmbedding: string;
   modelEmbedding: string;
   keepAliveEmbedding: string;
+  mcp_server: string[];
 }
 
 export function FormModel(props: props): JSX.Element {
@@ -84,6 +86,9 @@ export function FormModel(props: props): JSX.Element {
           setValue("modelEmbedding", props.Chat.models.embedding.tag);
       }
     },
+  });
+  const { value: McpServer, isLoading: isLoadingMcpServer } = useLocalStorage<McpServerConfig>("mcp_server_config", {
+    mcpServers: {},
   });
   const [CheckboxMainAdvanced, SetCheckboxMainAdvanced]: [boolean, React.Dispatch<React.SetStateAction<boolean>>] =
     React.useState(props.Chat && props.Chat.models.main.keep_alive ? true : false);
@@ -137,11 +142,24 @@ export function FormModel(props: props): JSX.Element {
     if (!CheckboxVision) SetCheckboxVisionAdvanced(false);
   }, [CheckboxVision]);
 
+  React.useEffect(() => {
+    if (props.Chat?.mcp_server && !isLoadingMcpServer && McpServer)
+      setValue(
+        "mcp_server",
+        props.Chat.mcp_server.filter(
+          (selectedMcp) =>
+            Object.keys(McpServer.mcpServers).findIndex((availableMcp) => selectedMcp === availableMcp) !== -1
+        )
+      );
+  }, [McpServer, isLoadingMcpServer]);
+
   const InfoServer = "Ollama Server.";
   const InfoModel = "Ollama Model.";
   const InfoVisionCheckbox = "Use a different model for vision when you multimodal cababilities is required.";
   const InfoToolsCheckbox = "Use a different model for tools when tool calling is required.";
   const InfoEmbeddingCheckbox = "Use a different model for embedding when you want to add a large file in context.";
+  const InfoMcpServer =
+    'Server can be configured with "Manage Mcp Server" Command. A model with tools capabilities is required.';
 
   const ActionView = (
     <ActionPanel>
@@ -197,6 +215,11 @@ export function FormModel(props: props): JSX.Element {
       } else if (!CheckboxEmbedding && chat.models.embedding) {
         chat.models.embedding = undefined;
       }
+      if (values.mcp_server.length > 0) {
+        chat.mcp_server = values.mcp_server;
+      } else {
+        chat.mcp_server = undefined;
+      }
       if (!(await GetSettingsCommandChatNames().catch(() => undefined))) {
         chat.name = "New Chat";
         chat.messages = [];
@@ -244,6 +267,7 @@ export function FormModel(props: props): JSX.Element {
               : undefined,
         },
         messages: [],
+        mcp_server: values.mcp_server.length > 0 ? values.mcp_server : undefined,
       };
       await AddSettingsCommandChat(chat);
       await props.revalidate();
@@ -401,6 +425,16 @@ export function FormModel(props: props): JSX.Element {
       )}
       {CheckboxEmbeddingAdvanced && (
         <Form.TextField title="Keep Alive" info={InfoKeepAlive} {...itemProps.keepAliveEmbedding} />
+      )}
+      {McpServer && !isLoadingMcpServer && (
+        <React.Fragment>
+          <Form.Separator />
+          <Form.TagPicker title="Mcp Server" info={InfoMcpServer} {...itemProps.mcp_server}>
+            {Object.keys(McpServer.mcpServers).map((name) => {
+              return <Form.TagPicker.Item value={name} title={name} icon={Icon.WrenchScrewdriver} />;
+            })}
+          </Form.TagPicker>
+        </React.Fragment>
       )}
     </Form>
   );
