@@ -19,8 +19,9 @@ export interface SettingsModels {
 
 export interface SettingsChatModels {
   main: SettingsChatModel;
-  embedding?: SettingsChatModel;
   vision?: SettingsChatModel;
+  tools?: SettingsChatModel;
+  embedding?: SettingsChatModel;
 }
 
 export interface SettingsCommandAnswer {
