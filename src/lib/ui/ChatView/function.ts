@@ -17,7 +17,7 @@ import { AddSettingsCommandChat, GetSettingsCommandChatByIndex } from "../../set
 import { RaycastChat, SettingsChatModel } from "../../settings/types";
 import { Preferences, RaycastImage } from "../../types";
 import { GetAvailableModel, PromptTokenParser } from "../function";
-import { McpServerConfig } from "../../mcp/types";
+import { McpServerConfig, McpToolInfo } from "../../mcp/types";
 import { McpClientMultiServer } from "../../mcp/mcp";
 import { PromptContext } from "./type";
 import "../../polyfill/node-fetch";
@@ -293,7 +293,7 @@ function GetMessagesForInference(
   let content = query;
   if (context && (context.tools || context.documents)) {
     content = `Respond to the user's prompt using the provided context information. Cite sources with url when available.\nUser Prompt: '${query}'`;
-    if (context.tools) content += `Context from Tools Calling: '${context.tools}'\n`;
+    if (context.tools) content += `Context from Tools Calling: '${context.tools.data}'\n`;
     if (context.documents) content += `Context from Documents: ${context.documents}\n`;
   };
 
@@ -327,7 +327,7 @@ async function ToolsCall(
   query: string,
   chat: RaycastChat,
   image?: RaycastImage[],
-): Promise<string | undefined> {
+): Promise<[string | undefined, McpToolInfo[] | undefined]> {
   await showToast({style: Toast.Style.Animated, title: "🔧 Tool Calling..."})
 
   /* Initialize McpClient if undefined. */
@@ -338,7 +338,7 @@ async function ToolsCall(
       });
     if (McpClient === undefined) {
       delete chat.mcp_server;
-      return;
+      return [undefined, undefined];
     };
   }
 
@@ -361,9 +361,17 @@ async function ToolsCall(
 
   /* Call tools on Mcp Server */
   if (response.message?.tool_calls) {
+
+    /* Get Mcp Tools Info */
+    const toolsInfo = McpClient.GetToolsInfoForOllama(response.message.tool_calls);
+
+    /* Call tools */
     const data = await McpClient.CallToolsForOllama(response.message.tool_calls);
-    if (data.length > 0) return JSON.stringify(data);
+
+    if (data.length > 0) return [JSON.stringify(data), toolsInfo];
   }
+
+  return [undefined, undefined];
 }
 
 /**
@@ -432,6 +440,7 @@ async function Inference(
               ...data,
               images: image,
               files: documents && documents.map((d) => d.metadata.source).filter((v, i) => i === documents.indexOf(v)),
+              tools: context.tools && context.tools.meta,
               messages: m.messages[m.messages.length - 1].messages,
             };
             setLoading(false);
@@ -465,7 +474,10 @@ export async function Run(
   if (documents) context.documents = await GetDocuments(query, chat, documents, image);
 
   /* Call Tools of mcp_server is defined */
-  if (chat.mcp_server) context.tools = await ToolsCall(query, chat, image);
+  if (chat.mcp_server) {
+    const [data, meta] = await ToolsCall(query, chat, image);
+    if (data && meta) context.tools = { data: data, meta: meta };
+  }
 
   /* Start Inference */
   await Inference(query, image, documents, context, chat, setChat, setLoading);

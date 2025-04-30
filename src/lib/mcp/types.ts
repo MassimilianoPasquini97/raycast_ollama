@@ -15,3 +15,14 @@ export interface McpServerTool {
   description?: string;
   inputSchema: any;
 }
+
+export interface McpToolInfo {
+  /* Mcp Server name */
+  server: string;
+  /* Function name */
+  function: string;
+  /* Arguments */
+  arguments: {
+    [name: string]: any;
+  }
+}

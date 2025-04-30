@@ -1,3 +1,4 @@
+import { McpToolInfo } from "../mcp/types";
 import { OllamaApiChatMessage, OllamaApiGenerateStats, OllamaServer } from "../ollama/types";
 import { RaycastImage } from "../types";
 
@@ -47,5 +48,6 @@ export interface RaycastChat {
 export interface RaycastChatMessage extends OllamaApiGenerateStats {
   images?: RaycastImage[];
   files?: string[];
+  tools?: McpToolInfo[];
   messages: OllamaApiChatMessage[];
 }

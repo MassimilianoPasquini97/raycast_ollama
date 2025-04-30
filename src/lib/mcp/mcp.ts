@@ -1,6 +1,6 @@
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StdioClientTransport, StdioServerParameters } from "@modelcontextprotocol/sdk/client/stdio.js";
-import { McpServerConfig, McpServerTool } from "./types";
+import { McpServerConfig, McpServerTool, McpToolInfo } from "./types";
 import { execSync } from "child_process";
 import os from "os";
 import { OllamaApiChatMessageToolCall, OllamaApiTool } from "../ollama/types";
@@ -144,6 +144,33 @@ export class McpClientMultiServer {
 
     return tools;
 
+  }
+
+  /**
+   * Get Tools info.
+   * @param tools - Tools in Ollama Format.
+   */
+  GetToolsInfoForOllama(tools: OllamaApiChatMessageToolCall[]): McpToolInfo[] {
+    const o: McpToolInfo[] = [];
+
+    tools.forEach((t) => {
+
+      /* Get Mcp Server Name */
+      const server = this._clientToolsFunctionNames.get(t.function.name);
+      if (!server) return;
+
+      /* Get Original function Name */
+      const name = t.function.name.replace(new RegExp(`^${server}_`), "");
+
+      o.push({
+        server: server,
+        function: name,
+        arguments: t.function.arguments,
+      });
+
+    })
+
+    return o;
   }
 
   /**
