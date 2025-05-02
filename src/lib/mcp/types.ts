@@ -24,5 +24,5 @@ export interface McpToolInfo {
   /* Arguments */
   arguments: {
     [name: string]: any;
-  }
+  };
 }

@@ -18,7 +18,6 @@ interface FormData {
 export function McpServerFormConfig(props: props): React.JSX.Element {
   const { handleSubmit, itemProps } = useForm<FormData>({
     onSubmit(values) {
-
       /* Deep copy of the old config */
       const newConfig: McpServerConfig = JSON.parse(JSON.stringify(props.config));
       if (props.configName) delete newConfig.mcpServers[props.configName];

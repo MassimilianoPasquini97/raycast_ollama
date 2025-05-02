@@ -225,7 +225,7 @@ async function GetDocumentByAffinity(
  * @param documents
  */
 function DocumentsToJson(documents: Document<Record<string, any>>[]): string {
-  let o = [];
+  const o = [];
   for (const document of documents) {
     o.push({
       source: document.metadata.source,
@@ -248,7 +248,6 @@ async function GetDocuments(
   documents: Document<Record<string, any>>[],
   image: RaycastImage[] | undefined
 ): Promise<string> {
-
   /* Get Model used for inference */
   let model = chat.models.main;
   if (chat.models.tools && chat.mcp_server) model = chat.models.tools;
@@ -280,7 +279,7 @@ function GetMessagesForInference(
   chat: RaycastChat,
   query: string,
   image?: RaycastImage[],
-  context?: PromptContext,
+  context?: PromptContext
 ): OllamaApiChatMessage[] {
   const messages: OllamaApiChatMessage[] = [];
 
@@ -295,7 +294,7 @@ function GetMessagesForInference(
     content = `Respond to the user's prompt using the provided context information. Cite sources with url when available.\nUser Prompt: '${query}'`;
     if (context.tools) content += `Context from Tools Calling: '${context.tools.data}'\n`;
     if (context.documents) content += `Context from Documents: ${context.documents}\n`;
-  };
+  }
 
   /* Add User Query */
   messages.push({
@@ -313,8 +312,8 @@ function GetMessagesForInference(
 async function InitMcpClient(): Promise<void> {
   const mcpServerConfigRaw = await LocalStorage.getItem<string>("mcp_server_config");
   if (!mcpServerConfigRaw) throw "Mcp Servers are not configured";
-  let mcpServerConfig: McpServerConfig = JSON.parse(mcpServerConfigRaw);
-  McpClient = new McpClientMultiServer(mcpServerConfig)
+  const mcpServerConfig: McpServerConfig = JSON.parse(mcpServerConfigRaw);
+  McpClient = new McpClientMultiServer(mcpServerConfig);
 }
 
 /**
@@ -326,20 +325,19 @@ async function InitMcpClient(): Promise<void> {
 async function ToolsCall(
   query: string,
   chat: RaycastChat,
-  image?: RaycastImage[],
+  image?: RaycastImage[]
 ): Promise<[string | undefined, McpToolInfo[] | undefined]> {
-  await showToast({style: Toast.Style.Animated, title: "🔧 Tool Calling..."})
+  await showToast({ style: Toast.Style.Animated, title: "🔧 Tool Calling..." });
 
   /* Initialize McpClient if undefined. */
   if (McpClient === undefined) {
-    await InitMcpClient()
-      .catch((e) => {
-        showToast({title: "Error", message: e, style: Toast.Style.Failure});
-      });
+    await InitMcpClient().catch((e) => {
+      showToast({ title: "Error", message: e, style: Toast.Style.Failure });
+    });
     if (McpClient === undefined) {
       delete chat.mcp_server;
       return [undefined, undefined];
-    };
+    }
   }
 
   /* Select model tag to use. */
@@ -361,7 +359,6 @@ async function ToolsCall(
 
   /* Call tools on Mcp Server */
   if (response.message?.tool_calls) {
-
     /* Get Mcp Tools Info */
     const toolsInfo = McpClient.GetToolsInfoForOllama(response.message.tool_calls);
 

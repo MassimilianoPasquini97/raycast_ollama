@@ -8,5 +8,5 @@ export interface PromptContext {
     meta: McpToolInfo[];
   };
   /* Documents data */
-  documents?:  string;
+  documents?: string;
 }

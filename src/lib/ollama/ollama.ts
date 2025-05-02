@@ -694,7 +694,7 @@ export class Ollama {
    * @param body - Ollama Generate Body Request.
    */
   async OllamaApiGenerateNoStream(body: Types.OllamaApiGenerateRequestBody): Promise<Types.OllamaApiGenerateResponse> {
-    return await this._OllamaApiNoStream(this._RouteApiGenerate, body) as Types.OllamaApiGenerateResponse;
+    return (await this._OllamaApiNoStream(this._RouteApiGenerate, body)) as Types.OllamaApiGenerateResponse;
   }
 
   /**
@@ -713,9 +713,8 @@ export class Ollama {
    * @param body - Ollama Generate Body Request.
    */
   async OllamaApiChatNoStream(body: Types.OllamaApiChatRequestBody): Promise<Types.OllamaApiChatResponse> {
-    return await this._OllamaApiNoStream(this._RouteApiChat, body) as Types.OllamaApiChatResponse;
+    return (await this._OllamaApiNoStream(this._RouteApiChat, body)) as Types.OllamaApiChatResponse;
   }
-
 
   /**
    * Perform text generation with the selected model without stream.
@@ -723,7 +722,10 @@ export class Ollama {
    * @param body - Ollama Generate Body Request.
    * @returns Response from the Ollama API with an EventEmitter with two event: `data` where all generated text is passed on `string` format and `done` when inference is finished returning a `OllamaApiGenerateResponse` object contains all metadata of inference.
    */
-  private async _OllamaApiNoStream(route: string, body: Types.OllamaApiGenerateRequestBody | Types.OllamaApiChatRequestBody): Promise<Types.OllamaApiGenerateResponse | Types.OllamaApiChatResponse> {
+  private async _OllamaApiNoStream(
+    route: string,
+    body: Types.OllamaApiGenerateRequestBody | Types.OllamaApiChatRequestBody
+  ): Promise<Types.OllamaApiGenerateResponse | Types.OllamaApiChatResponse> {
     body.stream = false;
     const url = `${this._server}${route}`;
     const req: RequestInit = {
