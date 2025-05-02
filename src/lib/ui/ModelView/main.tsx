@@ -56,6 +56,13 @@ export function ModelView(): JSX.Element {
           <List.Item.Detail.Metadata>
             <List.Item.Detail.Metadata.Label title="Format" text={prop.model.detail.details.format} />
             <List.Item.Detail.Metadata.Label title="Family" text={prop.model.detail.details.family} />
+            {prop.model.show.capabilities && prop.model.show.capabilities.length > 0 && (
+              <List.Item.Detail.Metadata.TagList title="Capabilities">
+                {prop.model.show.capabilities.map((c) => (
+                  <List.Item.Detail.Metadata.TagList.Item text={c} color={Color.Purple} />
+                ))}
+              </List.Item.Detail.Metadata.TagList>
+            )}
             {prop.model.detail.details.families && prop.model.detail.details.families.length > 0 && (
               <List.Item.Detail.Metadata.TagList title="Families">
                 {prop.model.detail.details.families.map((f) => (
@@ -85,13 +92,15 @@ export function ModelView(): JSX.Element {
             <List.Item.Detail.Metadata.Label title="System Prompt" text={prop.model.show.system} />
             <List.Item.Detail.Metadata.Label title="Template" text={prop.model.show.template} />
             <List.Item.Detail.Metadata.Separator />
-            <List.Item.Detail.Metadata.TagList title="Parameters">
-              {Object.keys(prop.model.modelfile.parameter).map((p, i) => (
-                <List.Item.Detail.Metadata.TagList.Item
-                  text={`${p} ${prop.model.modelfile && Object.values(prop.model.modelfile?.parameter)[i]}`}
-                />
-              ))}
-            </List.Item.Detail.Metadata.TagList>
+            {prop.model.modelfile && (
+              <List.Item.Detail.Metadata.TagList title="Parameters">
+                {Object.keys(prop.model.modelfile.parameter).map((p, i) => (
+                  <List.Item.Detail.Metadata.TagList.Item
+                    text={`${p} ${prop.model.modelfile && Object.values(prop.model.modelfile?.parameter)[i]}`}
+                  />
+                ))}
+              </List.Item.Detail.Metadata.TagList>
+            )}
             <List.Item.Detail.Metadata.Separator />
             <List.Item.Detail.Metadata.Label title="License" text={prop.model.show.license} />
           </List.Item.Detail.Metadata>
