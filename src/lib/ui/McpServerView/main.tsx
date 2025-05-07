@@ -62,7 +62,7 @@ export function McpServerView(): React.JSX.Element {
                 title={`Yes, Delete "${props.mcpServerName}" Mcp Server`}
                 icon={Icon.CheckCircle}
                 onAction={async () => {
-                  DeleteMcpServer(props.mcpServerName as string, McpServer, setMcpServer);
+                  await DeleteMcpServer(props.mcpServerName as string, McpServer, setMcpServer);
                 }}
               />
               <Action title="No" icon={Icon.XMarkCircle} />
@@ -89,7 +89,7 @@ export function McpServerView(): React.JSX.Element {
   if (showForm && McpServer && form.current) return form.current;
 
   return (
-    <List isLoading={isLoadingMcpServer} isShowingDetail={showDetail} actions={<ActionPanelMain />}>
+    <List isLoading={isLoadingMcpServer || !McpServer} isShowingDetail={showDetail} actions={<ActionPanelMain />}>
       {McpServer && Object.keys(McpServer.mcpServers).length > 0 ? (
         Object.keys(McpServer.mcpServers).map((key) => {
           return (

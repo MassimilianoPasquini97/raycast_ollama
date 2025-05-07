@@ -17,7 +17,7 @@ interface FormData {
 
 export function McpServerFormConfig(props: props): React.JSX.Element {
   const { handleSubmit, itemProps } = useForm<FormData>({
-    onSubmit(values) {
+    async onSubmit(values) {
       /* Deep copy of the old config */
       const newConfig: McpServerConfig = JSON.parse(JSON.stringify(props.config));
       if (props.configName) delete newConfig.mcpServers[props.configName];
@@ -27,7 +27,7 @@ export function McpServerFormConfig(props: props): React.JSX.Element {
       Object.keys(configToSave.mcpServers).forEach((key) => {
         newConfig.mcpServers[key] = configToSave.mcpServers[key];
       });
-      props.setConfig(newConfig);
+      await props.setConfig(newConfig);
       props.setShow(false);
     },
     initialValues: {
@@ -46,7 +46,7 @@ export function McpServerFormConfig(props: props): React.JSX.Element {
     // Exception on undefined value.
     if (!value) return "Empty Config.";
 
-    // Exception on unvalid JSON Mcp Server Config.
+    // Exception on invalid JSON Mcp Server Config.
     let config: McpServerConfig;
     try {
       config = JSON.parse(value);

@@ -25,12 +25,12 @@ export class McpClientMultiServer {
   constructor(config: McpServerConfig, initEnvsPath = true) {
     /* Get Mcp Server names. */
     const serverNames = Object.keys(config.mcpServers);
-    if (serverNames.length === 0) throw "Mcp Config do not contain any server configuration.";
+    if (serverNames.length === 0) throw new Error("MCP configuration must contain at least one server");
 
     /* Initialize a client for each Mcp Server. */
     serverNames.forEach((server) => {
       this._client.set(server, new McpClient(config.mcpServers[server], initEnvsPath));
-      if (!initEnvsPath) initEnvsPath = false;
+      if (initEnvsPath) initEnvsPath = false;
     });
   }
 

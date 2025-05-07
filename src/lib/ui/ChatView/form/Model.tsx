@@ -155,7 +155,7 @@ export function FormModel(props: props): JSX.Element {
 
   const InfoServer = "Ollama Server.";
   const InfoModel = "Ollama Model.";
-  const InfoVisionCheckbox = "Use a different model for vision when you multimodal cababilities is required.";
+  const InfoVisionCheckbox = "Use a different model for vision when you multimodal capabilities is required.";
   const InfoToolsCheckbox = "Use a different model for tools when tool calling is required.";
   const InfoEmbeddingCheckbox = "Use a different model for embedding when you want to add a large file in context.";
   const InfoMcpServer =
@@ -253,7 +253,7 @@ export function FormModel(props: props): JSX.Element {
                   server_name: values.serverTools,
                   server: OllamaServer.get(values.serverTools) as OllamaServer,
                   tag: values.modelTools,
-                  keep_alive: CheckboxToolsAdvanced ? values.keepAliveVision : undefined,
+                  keep_alive: CheckboxToolsAdvanced ? values.keepAliveTools : undefined,
                 }
               : undefined,
           embedding:
