@@ -63,12 +63,7 @@ export async function ChangeChat(
  * @param vt - Vision Model Tag
  * @returns Return `true` if all configured model are installed.
  */
-async function VerifyChatModelInstalled(
-  ms: string,
-  mt: string,
-  vs?: string,
-  vt?: string
-): Promise<boolean> {
+async function VerifyChatModelInstalled(ms: string, mt: string, vs?: string, vt?: string): Promise<boolean> {
   const am: Map<string, OllamaApiTagsResponseModel[]> = new Map();
   am.set(ms, await GetAvailableModel(ms));
   if ((am.get(ms) as OllamaApiTagsResponseModel[]).filter((v) => v.name === mt).length === 0) return false;
@@ -133,7 +128,7 @@ function GetMessagesForInference(
 
   /* Create Prompt */
   let content = query;
-  if (context && (context.tools)) {
+  if (context && context.tools) {
     content = `Respond to the user's prompt using the provided context information. Cite sources with url when available.\nUser Prompt: '${query}'`;
     if (context.tools) content += `Context from Tools Calling: '${context.tools.data}'\n`;
   }
