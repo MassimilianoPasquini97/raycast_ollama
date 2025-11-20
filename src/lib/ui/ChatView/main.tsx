@@ -12,8 +12,6 @@ import { FormModel } from "./form/Model";
 import { FormRenameChat } from "./form/RenameChat";
 import { GetImage } from "../function";
 import { RaycastImage } from "../../types";
-import { Document } from "langchain/document";
-import { FormAttachFile } from "./form/AttachFile";
 
 /**
  * Return JSX element for chat view.
@@ -41,10 +39,6 @@ export function ChatView(): JSX.Element {
     RaycastImage[] | undefined,
     React.Dispatch<React.SetStateAction<RaycastImage[] | undefined>>
   ] = React.useState();
-  const [Document, SetDocument]: [
-    Document<Record<string, any>>[] | undefined,
-    React.Dispatch<React.SetStateAction<Document<Record<string, any>>[] | undefined>>
-  ] = React.useState();
 
   // Save Chat To LocalStoarge on Inference Done.
   React.useEffect(() => {
@@ -52,7 +46,6 @@ export function ChatView(): JSX.Element {
       SetQuery("");
       SetIsLoading(false);
       if (Image) SetImage(undefined);
-      if (Document) SetDocument(undefined);
       if (Chat.messages.length === 1 && Chat.name === "New Chat")
         SetChat((prevValue) => {
           if (prevValue) {
@@ -88,9 +81,6 @@ export function ChatView(): JSX.Element {
   // Form: Model
   const [showFormModel, setShowFormModel]: [boolean, React.Dispatch<React.SetStateAction<boolean>>] =
     React.useState(false);
-  // Form: AttachDocument
-  const [showFormAttachFile, setShowFormAttachFile]: [boolean, React.Dispatch<React.SetStateAction<boolean>>] =
-    React.useState(false);
 
   /**
    * Action Panel for  Message
@@ -105,7 +95,7 @@ export function ChatView(): JSX.Element {
             title="Get Answer"
             icon={Icon.SpeechBubbleActive}
             onAction={() => {
-              Run(Query, Image, Document, Chat, SetChat, SetIsLoading).catch(async (e: Error) => {
+              Run(Query, Image, Chat, SetChat, SetIsLoading).catch(async (e: Error) => {
                 await showToast({ style: Toast.Style.Failure, title: "Error:", message: e.message });
                 SetIsLoading(false);
               });
@@ -194,12 +184,6 @@ export function ChatView(): JSX.Element {
                   })
               }
               shortcut={{ modifiers: ["cmd"], key: "i" }}
-            />
-            <Action
-              title="File"
-              icon={Icon.Finder}
-              onAction={() => setShowFormAttachFile(true)}
-              shortcut={{ modifiers: ["cmd"], key: "f" }}
             />
           </ActionPanel.Section>
         )}
@@ -306,9 +290,6 @@ export function ChatView(): JSX.Element {
         revalidate={RevalidateChatNames}
       />
     );
-
-  if (showFormAttachFile)
-    return <FormAttachFile SetDocument={SetDocument} SetShow={setShowFormAttachFile} Document={Document} />;
 
   return (
     <List
