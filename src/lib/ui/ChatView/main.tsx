@@ -8,6 +8,7 @@ import {
 } from "../../settings/settings";
 import { RaycastChat, RaycastChatMessage } from "../../settings/types";
 import { ChangeChat, ClipboardConversation, NewChat, Run } from "./function";
+import { Shortcut } from "./shortcut";
 import { FormModel } from "./form/Model";
 import { FormRenameChat } from "./form/RenameChat";
 import { GetImage } from "../function";
@@ -114,14 +115,14 @@ export function ChatView(): JSX.Element {
             <Action.CopyToClipboard
               title="Copy Question"
               content={props.message.messages[0].content as string}
-              shortcut={{ modifiers: ["cmd"], key: "b" }}
+              shortcut={Shortcut.CopyName}
             />
           )}
           {props.message && (
             <Action.CopyToClipboard
               title="Copy Answer"
               content={props.message.messages[1].content as string}
-              shortcut={{ modifiers: ["cmd", "shift"], key: "c" }}
+              shortcut={Shortcut.Copy}
             />
           )}
           {props.message && <Action.CopyToClipboard title="Copy Conversation" content={ClipboardConversation(Chat)} />}
@@ -130,7 +131,7 @@ export function ChatView(): JSX.Element {
               title="New Chat"
               icon={Icon.NewDocument}
               onAction={() => NewChat(Chat, SetChatNameIndex, RevalidateChatNames)}
-              shortcut={{ modifiers: ["cmd"], key: "n" }}
+              shortcut={Shortcut.New}
             />
           )}
           {Chat && (
@@ -138,11 +139,11 @@ export function ChatView(): JSX.Element {
               title="Rename Chat"
               icon={Icon.Pencil}
               onAction={() => setShowFormRenameChat(true)}
-              shortcut={{ modifiers: ["cmd"], key: "e" }}
+              shortcut={Shortcut.Edit}
             />
           )}
           {Chat && (
-            <ActionPanel.Submenu title="Delete Chat" icon={Icon.Trash}>
+            <ActionPanel.Submenu title="Delete Chat" icon={Icon.Trash} shortcut={Shortcut.Remove}>
               <Action
                 title={`Yes, Delete "${Chat.name}" Chat`}
                 icon={Icon.Trash}
@@ -162,13 +163,13 @@ export function ChatView(): JSX.Element {
               title="Selection"
               icon={Icon.QuoteBlock}
               onAction={() => SetQuery((prevState) => (prevState += "\n{selection}\n"))}
-              shortcut={{ modifiers: ["cmd"], key: "s" }}
+              shortcut={Shortcut.AttachText}
             />
             <Action
               title="Browser Extention Tab"
               icon={Icon.Globe}
               onAction={() => SetQuery((prevState) => (prevState += "\n{browser-tab}\n"))}
-              shortcut={{ modifiers: ["cmd"], key: "b" }}
+              shortcut={Shortcut.AttachBrowserTab}
             />
             <Action
               title="Image From Clipboard"
@@ -183,7 +184,7 @@ export function ChatView(): JSX.Element {
                     showToast({ style: Toast.Style.Failure, title: "Error: ", message: String(e) });
                   })
               }
-              shortcut={{ modifiers: ["cmd"], key: "i" }}
+              shortcut={Shortcut.AttachImage}
             />
           </ActionPanel.Section>
         )}
@@ -193,14 +194,14 @@ export function ChatView(): JSX.Element {
               title="Change Model"
               icon={Icon.Box}
               onAction={() => setShowFormModel(true)}
-              shortcut={{ modifiers: ["cmd"], key: "m" }}
+              shortcut={Shortcut.ChangeModel}
             />
           )}
           {props.message && (
             <Action
               title={ShowAnswerMetadata ? "Hide Metadata" : "Show Metadata"}
               icon={ShowAnswerMetadata ? Icon.EyeDisabled : Icon.Eye}
-              shortcut={{ modifiers: ["cmd"], key: "y" }}
+              shortcut={Shortcut.ToggleQuickLook}
               onAction={() => SetShowAnswerMetadata((prevState) => !prevState)}
             />
           )}
