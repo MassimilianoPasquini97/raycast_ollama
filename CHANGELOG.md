@@ -1,5 +1,11 @@
 # raycast-ollama Changelog
 
+## [Improvement] - {PR_MERGE_DATE}
+
+- [Improvement] Added Windows support.
+- [Improvement] Adjusted shortcuts for better Raycast consistency.
+- Removed experimental file feature.
+
 ## [Improvement and Fix] - 2025-05-07
 
 - [Improvement] Implemented support for Mcp Server. README.md for more information on how to use it.
