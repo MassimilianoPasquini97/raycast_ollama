@@ -4,7 +4,7 @@ import React from "react";
 import { McpServerConfig } from "../../mcp/types";
 import { McpServerFormConfig } from "./form/config";
 import { DeleteMcpServer, GetMcpServerConfig } from "./function";
-import { Shortcut } from "./shortcut";
+import { Shortcut } from "../shortcut";
 
 export function McpServerView(): React.JSX.Element {
   const {

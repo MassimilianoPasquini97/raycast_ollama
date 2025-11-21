@@ -8,7 +8,7 @@ import {
 } from "../../settings/settings";
 import { RaycastChat, RaycastChatMessage } from "../../settings/types";
 import { ChangeChat, ClipboardConversation, NewChat, Run } from "./function";
-import { Shortcut } from "./shortcut";
+import { Shortcut } from "../shortcut";
 import { FormModel } from "./form/Model";
 import { FormRenameChat } from "./form/RenameChat";
 import { GetImage } from "../function";

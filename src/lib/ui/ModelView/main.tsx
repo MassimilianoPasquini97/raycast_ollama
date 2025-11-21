@@ -3,7 +3,7 @@ import * as React from "react";
 import { Action, ActionPanel, Color, Icon, List } from "@raycast/api";
 import { getProgressIcon, usePromise, useLocalStorage } from "@raycast/utils";
 import { DeleteModel, DeleteServer, GetModels, UpdateModel } from "./function";
-import { Shortcut } from "./shortcut";
+import { Shortcut } from "../shortcut";
 import { FormPullModel } from "./form/PullModel";
 import { FormEditServer } from "./form/EditServer";
 import { GetServerArray } from "../function";

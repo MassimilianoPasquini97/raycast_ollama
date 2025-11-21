@@ -4,7 +4,7 @@ import { usePromise, useLocalStorage } from "@raycast/utils";
 import React from "react";
 import { FormatOllamaPsModelExpireAtFormat, GetServerArray } from "../function";
 import { GetModels } from "./function";
-import { Shortcut } from "./shortcut";
+import { Shortcut } from "../shortcut";
 
 export function PsView(): React.JSX.Element {
   const abort = React.useRef(new AbortController());
