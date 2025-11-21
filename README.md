@@ -26,11 +26,10 @@ View, add, and remove models that are installed locally or on a configured remot
 
 Chat with your preferred model from Raycast, with the following features:
 
-- ***CMD+M***, *Change Model*: change model when you want and use different one for vision or embedding.
-- ***CMD+S***, *Selection*: Add text from selection or clipboard to the prompt.
-- ***CMD+B***, *Browser Selection Tab*: Add content from selected tab to the prompt. Raycast Browser Extension is required.
-- ***CMD+I***, *Image From Clipboard*: Add jpeg or png image to the prompt. A Model with vision capabilities is required.
-- ***CMD+F***, *File*: Add content from files. This feature is still experimental.
+- ***CMD+M (macOS) CTRL+M (Windows)***, *Change Model*: change model when you want and use different one for vision or embedding.
+- ***CMD+T (macOS) CTRL+T (Windows)***, *Selection*: Add text from selection or clipboard to the prompt.
+- ***CMD+B (macOS) CTRL+B (Windows)***, *Browser Selection Tab*: Add content from selected tab to the prompt. Raycast Browser Extension is required.
+- ***CMD+I (macOS) CTRL+I (Windows)***, *Image From Clipboard*: Add jpeg or png image to the prompt. A Model with vision capabilities is required.
 
 From extentions preferences you can chose how many messages use as memory. By default it use the last 20 messages.
 
