@@ -11,6 +11,11 @@ Use [Ollama](https://ollama.ai) for local llama inference on Raycast. This appli
 
 [Ollama](https://ollama.ai) installed and running on your mac. At least one model need to be installed throw Ollama cli tools or with 'Manage Models' Command. You can find all available model [here](https://ollama.ai/library).
 
+> [!WARNING]
+> On the current Windows (Beta) there are the following limitations:
+> * The commands “Describe Content of Image”, “Get Text from Image”, “Custom Command”, and “Chat with Ollama” support loading images only via image path.
+> * The input source “Selected Text” is not supported; use the "Clipboard" instead.
+
 ## How to Use
 
 ### Command: Manage Models

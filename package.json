@@ -5,6 +5,10 @@
   "description": "Perform Local Inference with Ollama",
   "icon": "icon.png",
   "author": "massimiliano_pasquini",
+  "platforms": [
+    "macOS",
+    "Windows"
+  ],
   "categories": [
     "Productivity"
   ],
@@ -236,7 +240,7 @@
   ],
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.8.0",
-    "@raycast/api": "^1.55.2",
+    "@raycast/api": "^1.103.7",
     "@raycast/utils": "^2.2.2",
     "file-type": "^19.0.0",
     "node-fetch": "^3.3.2"
