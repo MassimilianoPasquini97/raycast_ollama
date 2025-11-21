@@ -5,6 +5,10 @@
   "description": "Perform Local Inference with Ollama",
   "icon": "icon.png",
   "author": "massimiliano_pasquini",
+  "platforms": [
+    "macOS",
+    "Windows"
+  ],
   "categories": [
     "Productivity"
   ],
