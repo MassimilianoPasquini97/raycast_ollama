@@ -2,6 +2,7 @@
 
 ## [Improvement] - {PR_MERGE_DATE}
 
+- [Improvement] New Liquid Glass Icon.
 - [Improvement] Added Windows support.
 - [Improvement] Adjusted shortcuts for better Raycast consistency.
 - Removed experimental file feature.
