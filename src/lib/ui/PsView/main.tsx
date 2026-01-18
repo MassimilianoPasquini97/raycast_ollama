@@ -6,6 +6,8 @@ import { FormatOllamaPsModelExpireAtFormat, GetServerArray } from "../function";
 import { GetModels, UnloadModel } from "./function";
 import { Shortcut } from "../shortcut";
 
+const locale = Intl.DateTimeFormat().resolvedOptions().locale;
+
 export function PsView(): React.JSX.Element {
   const abort = React.useRef(new AbortController());
   const {
@@ -80,9 +82,13 @@ export function PsView(): React.JSX.Element {
               text={`${(prop.model.detail.size / 1e9).toPrecision(2).toString()} GB`}
             />
             <List.Item.Detail.Metadata.Label
+              title="Context Length"
+              text={`${prop.model.detail.context_length.toLocaleString(locale)}`}
+            />
+            <List.Item.Detail.Metadata.Label
               title="Expires at"
               icon={Icon.Hourglass}
-              text={prop.model.detail.expires_at}
+              text={new Date(prop.model.detail.expires_at).toLocaleString(locale)}
             />
           </List.Item.Detail.Metadata>
         }

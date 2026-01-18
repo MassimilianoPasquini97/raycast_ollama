@@ -9,6 +9,8 @@ import { FormEditServer } from "./form/EditServer";
 import { GetServerArray } from "../function";
 import { GetOllamaServers } from "../../settings/settings";
 
+const locale = Intl.DateTimeFormat().resolvedOptions().locale;
+
 /**
  * Return JSX element for managing Ollama models.
  * @returns {JSX.Element} Raycast Model View.
@@ -79,7 +81,7 @@ export function ModelView(): JSX.Element {
             <List.Item.Detail.Metadata.Label
               title="Modified At"
               icon={Icon.Calendar}
-              text={prop.model.detail.modified_at}
+              text={new Date(prop.model.detail.modified_at).toLocaleString(locale)}
             />
             <List.Item.Detail.Metadata.Label
               title="Size"
@@ -87,7 +89,16 @@ export function ModelView(): JSX.Element {
               text={`${(prop.model.detail.size / 1e9).toPrecision(2).toString()} GB`}
             />
             {prop.model.ps && (
-              <List.Item.Detail.Metadata.Label title="Memory freed at" text={prop.model.ps.expires_at} />
+              <React.Fragment>
+                <List.Item.Detail.Metadata.Label
+                  title="Context Length"
+                  text={`${prop.model.ps.context_length.toLocaleString(locale)}`}
+                />
+                <List.Item.Detail.Metadata.Label
+                  title="Memory freed at"
+                  text={new Date(prop.model.ps.expires_at).toLocaleString(locale)}
+                />
+              </React.Fragment>
             )}
             <List.Item.Detail.Metadata.Separator />
             <List.Item.Detail.Metadata.Label title="System Prompt" text={prop.model.show.system} />
