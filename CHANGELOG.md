@@ -1,5 +1,10 @@
 # raycast-ollama Changelog
 
+## [Improvement] - {PR_MERGE_DATE}
+
+- [Improvement] Command "Manage Models": added "Load Model on Memory" action, whitch loads the model on memory with no expiration date.
+- [Improvement] Command "Manage Models" and "Loaded Models": added "Unload Model From Memory" action, whitch unload the model from memory.
+
 ## [Improvement] - 2025-11-24
 
 - [Improvement] New Liquid Glass Icon.
@@ -26,7 +31,7 @@
 
 - New Command 'Loaded Models': lists currently models loaded on memory. Data are auto updated every 3 seconds.
 - Command 'Manage Models': model currently loaded in memory flagged with tag 'In Memory'.
-- Command 'Manage Models': added Action 'Update Model', pull selected model from registry updating it. 
+- Command 'Manage Models': added Action 'Update Model', pull selected model from registry updating it.
 - Command 'Manage Models': added Action 'Model Library', open Ollama Library Web page for listing available models.
 - Command 'Chat with Ollama': modified copy keybinds to 'cmd+shift+c' from 'cmd+c'.
 

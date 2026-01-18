@@ -2,7 +2,7 @@ import * as Types from "./types";
 import * as React from "react";
 import { Action, ActionPanel, Color, Icon, List } from "@raycast/api";
 import { getProgressIcon, usePromise, useLocalStorage } from "@raycast/utils";
-import { DeleteModel, DeleteServer, GetModels, UpdateModel } from "./function";
+import { DeleteModel, DeleteServer, GetModels, LoadModel, UnloadModel, UpdateModel } from "./function";
 import { Shortcut } from "../shortcut";
 import { FormPullModel } from "./form/PullModel";
 import { FormEditServer } from "./form/EditServer";
@@ -130,6 +130,22 @@ export function ModelView(): JSX.Element {
             content={prop.model.detail.name as string}
             shortcut={Shortcut.Copy}
           />
+          {!prop.model.ps && (
+            <Action
+              title="Load Model on Memory"
+              icon={Icon.Upload}
+              onAction={() => LoadModel(prop.model, RevalidateModels)}
+              shortcut={Shortcut.LoadUnloadModel}
+            />
+          )}
+          {prop.model.ps && (
+            <Action
+              title="Unload Model From Memory"
+              icon={Icon.Eject}
+              onAction={() => UnloadModel(prop.model, RevalidateModels)}
+              shortcut={Shortcut.LoadUnloadModel}
+            />
+          )}
           <Action
             title="Update Model"
             icon={Icon.Repeat}

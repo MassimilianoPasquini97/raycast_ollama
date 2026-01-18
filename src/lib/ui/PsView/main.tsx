@@ -3,7 +3,7 @@ import { Action, ActionPanel, Color, Icon, List } from "@raycast/api";
 import { usePromise, useLocalStorage } from "@raycast/utils";
 import React from "react";
 import { FormatOllamaPsModelExpireAtFormat, GetServerArray } from "../function";
-import { GetModels } from "./function";
+import { GetModels, UnloadModel } from "./function";
 import { Shortcut } from "../shortcut";
 
 export function PsView(): React.JSX.Element {
@@ -44,6 +44,12 @@ export function PsView(): React.JSX.Element {
             shortcut={Shortcut.ToggleQuickLook}
           />
           <Action.CopyToClipboard title="Copy Model Name" content={prop.model.detail.name as string} />
+          <Action
+            title="Unload Model From Memory"
+            icon={Icon.Eject}
+            onAction={() => UnloadModel(prop.model, RevalidateModels)}
+            shortcut={Shortcut.LoadUnloadModel}
+          />
         </ActionPanel.Section>
       </ActionPanel>
     );

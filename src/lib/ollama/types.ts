@@ -57,15 +57,17 @@ export interface OllamaApiGenerateOptionsRequestBody {
 
 export interface OllamaApiGenerateRequestBody {
   model: string;
-  prompt: string;
+  prompt?: string;
+  suffix?: string;
   system?: string;
   template?: string;
   context?: number[];
   stream?: boolean;
+  think?: boolean;
   raw?: boolean;
   format?: string;
   images?: string[];
-  keep_alive?: string;
+  keep_alive?: string | number;
 
   options?: OllamaApiGenerateOptionsRequestBody;
 }
@@ -82,9 +84,11 @@ export interface OllamaApiGenerateStats {
   eval_duration?: number;
 
   done: boolean;
+  done_reason?: string;
 }
 
 export interface OllamaApiGenerateResponse extends OllamaApiGenerateStats {
+  thinking?: string;
   response: string;
   context?: number[];
 }
