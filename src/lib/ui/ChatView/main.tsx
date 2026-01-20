@@ -49,11 +49,12 @@ export function ChatView(): JSX.Element {
       if (Image) SetImage(undefined);
       if (Chat.messages.length === 1 && Chat.name === "New Chat")
         SetChat((prevValue) => {
-          if (prevValue) {
+          if (prevValue && prevValue.messages.length > 0) {
             const name = `${prevValue.messages[0].messages[0].content.substring(0, 25)}...`;
             if (ChatNames) ChatNames[ChatNameIndex] = name;
             return { ...prevValue, name: name };
           }
+          return prevValue;
         });
       SetSettingsCommandChatByIndex(ChatNameIndex, Chat);
     }
