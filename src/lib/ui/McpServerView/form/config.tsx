@@ -55,6 +55,7 @@ export function McpServerFormConfig(props: props): React.JSX.Element {
     }
 
     // Exception if adding Mcp Server Config with already used name.
+    if (!config.mcpServers) return "Missing 'mcpServers' key.";
     const currentNames = Object.keys(props.config.mcpServers);
     const newNames = Object.keys(config.mcpServers);
     const commonName = currentNames.find(
