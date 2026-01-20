@@ -1,7 +1,7 @@
 import * as Types from "./types";
 import { Action, ActionPanel, Color, Icon, List } from "@raycast/api";
 import { usePromise, useLocalStorage } from "@raycast/utils";
-import React from "react";
+import * as React from "react";
 import { FormatOllamaPsModelExpireAtFormat, GetServerArray } from "../function";
 import { GetModels, UnloadModel } from "./function";
 import { Shortcut } from "../shortcut";
