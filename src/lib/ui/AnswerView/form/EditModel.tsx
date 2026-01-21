@@ -26,7 +26,7 @@ interface FormData {
   keep_alive: string;
 }
 
-export function EditModel(props: props): JSX.Element {
+export function EditModel(props: props): React.JSX.Element {
   const { data: Model, isLoading: IsLoadingModel } = usePromise(GetModels, [], {
     onData: (data) => {
       if (props.server === undefined || props.model === undefined) return;
