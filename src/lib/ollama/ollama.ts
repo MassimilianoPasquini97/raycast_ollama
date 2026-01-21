@@ -571,7 +571,7 @@ export class Ollama {
               } catch (err) {
                 console.error(err);
               }
-              if (json)
+              if (json && typeof json === "object")
                 if ("total" in json && json.total && "completed" in json && json.completed) {
                   e.emit("downloading", json.completed / json.total);
                 } else if ("status" in json && json.status === "success") {
