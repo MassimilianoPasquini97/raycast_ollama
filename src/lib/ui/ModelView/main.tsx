@@ -11,6 +11,14 @@ import { GetOllamaServers } from "../../settings/settings";
 
 const locale = Intl.DateTimeFormat().resolvedOptions().locale;
 
+const IconsCapabilities: Record<string, Icon> = {
+  completion: Icon.SpeechBubbleActive,
+  vision: Icon.Eye,
+  thinking: Icon.Glasses,
+  tools: Icon.Hammer,
+  image: Icon.Image,
+};
+
 /**
  * Return JSX element for managing Ollama models.
  * @returns {React.JSX.Element} Raycast Model View.
@@ -62,7 +70,7 @@ export function ModelView(): React.JSX.Element {
             {prop.model.show.capabilities && prop.model.show.capabilities.length > 0 && (
               <List.Item.Detail.Metadata.TagList title="Capabilities">
                 {prop.model.show.capabilities.map((c) => (
-                  <List.Item.Detail.Metadata.TagList.Item text={c} color={Color.Purple} />
+                  <List.Item.Detail.Metadata.TagList.Item icon={IconsCapabilities[c]} text={c} color={Color.Purple} />
                 ))}
               </List.Item.Detail.Metadata.TagList>
             )}

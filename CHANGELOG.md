@@ -7,6 +7,7 @@
 - [Improvement] Command "Manage Models" and "Loaded Models": added "Context Length" information for loaded models.
 - [Improvement] Command "Manage Models" and "Loaded Models": dates are now formatted according to user locale.
 - [Improvement] Command "Translate" now implements the TranslateGemma prompt, featuring source and target language selection via a dropdown menu. We recommend using the TranslateGemma model for this command.
+- [Improvement] Command "Manage Models" implemented minor UI enhancements.
 - [Fix] Fixed various bugs.
 
 ## [Improvement] - 2025-11-24
