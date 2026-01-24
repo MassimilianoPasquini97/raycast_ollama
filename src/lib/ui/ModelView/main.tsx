@@ -16,7 +16,7 @@ const IconsCapabilities: Record<string, Icon> = {
   vision: Icon.Eye,
   thinking: Icon.Glasses,
   tools: Icon.Hammer,
-  image: Icon.Image,
+  image: Icon.Brush,
 };
 
 /**
