@@ -6,6 +6,7 @@
 - [Improvement] Command "Manage Models" and "Loaded Models": added "Unload Model From Memory" action, whitch unload the model from memory.
 - [Improvement] Command "Manage Models" and "Loaded Models": added "Context Length" information for loaded models.
 - [Improvement] Command "Manage Models" and "Loaded Models": dates are now formatted according to user locale.
+- [Improvement] Command "Translate" now implements the TranslateGemma prompt, featuring source and target language selection via a dropdown menu. We recommend using the TranslateGemma model for this command.
 - [Fix] Fixed various bugs.
 
 ## [Improvement] - 2025-11-24
