@@ -6,7 +6,7 @@ import { DeleteModel, DeleteServer, GetModels, LoadModel, UnloadModel, UpdateMod
 import { Shortcut } from "../shortcut";
 import { FormPullModel } from "./form/PullModel";
 import { FormEditServer } from "./form/EditServer";
-import { GetServerArray } from "../function";
+import { FormatOllamaPsModelExpireAtFormat, GetServerArray } from "../function";
 import { GetOllamaServers } from "../../settings/settings";
 
 const locale = Intl.DateTimeFormat().resolvedOptions().locale;
@@ -212,11 +212,28 @@ export function ModelView(): React.JSX.Element {
     );
   }
 
-  function ModelAccessories(SelectedServer: string | undefined, Model: Types.UiModel) {
-    const accessories = [];
-
-    if (SelectedServer === "All") accessories.push({ tag: Model.server.name, icon: Icon.HardDrive });
-    if (Model.ps) accessories.push({ tag: { color: Color.Green, value: "In Memory" } });
+  function ModelAccessories(SelectedServer: string | undefined, Model: Types.UiModel): List.Item.Accessory[] {
+    const accessories: List.Item.Accessory[] = [];
+    /* Ollama Server Name */
+    if (SelectedServer === "All") {
+      accessories.push({ tag: Model.server.name, icon: Icon.HardDrive });
+      /* Skip other accessories if details are showed */
+      if (showDetail) return accessories;
+    }
+    /* Model Ps Data */
+    if (Model.ps) {
+      accessories.push({ tag: { color: Color.Green, value: "In Memory" } });
+      /* Skip other accessories if details are showed */
+      if (showDetail) return accessories;
+      accessories.push({
+        tag: { color: Color.PrimaryText, value: `${(Model.ps.size_vram / 1e9).toPrecision(2).toString()} GB` },
+        icon: Icon.MemoryChip,
+      });
+      accessories.push({
+        tag: { color: Color.PrimaryText, value: FormatOllamaPsModelExpireAtFormat(Model.ps.expires_at) },
+        icon: Icon.Hourglass,
+      });
+    }
 
     return accessories;
   }

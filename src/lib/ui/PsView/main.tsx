@@ -98,13 +98,20 @@ export function PsView(): React.JSX.Element {
 
   function ModelAccessories(SelectedServer: string | undefined, Model: Types.UiModel) {
     const accessories = [];
-
-    if (SelectedServer === "All") accessories.push({ tag: Model.server.name, icon: Icon.HardDrive });
+    /* Ollama Server Name */
+    if (SelectedServer === "All") {
+      accessories.push({ tag: Model.server.name, icon: Icon.HardDrive });
+      /* Skip other accessories if details are showed */
+      if (showDetail) return accessories;
+    }
+    /* Model Ps Data */
     if (Model.detail.size_vram)
       accessories.push({
         tag: { color: Color.PrimaryText, value: `${(Model.detail.size_vram / 1e9).toPrecision(2).toString()} GB` },
         icon: Icon.MemoryChip,
       });
+    /* Skip other accessories if details are showed */
+    if (showDetail) return accessories;
     if (Model.detail.expires_at)
       accessories.push({
         tag: { color: Color.PrimaryText, value: FormatOllamaPsModelExpireAtFormat(Model.detail.expires_at) },
