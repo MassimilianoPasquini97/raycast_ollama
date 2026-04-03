@@ -59,6 +59,25 @@
       "required": false,
       "default": false,
       "label": "Certificate Validation Enabled"
+    },
+    {
+      "name": "ollamaApiKey",
+      "description": "Ollama API Key used by Web Search Tools",
+      "type": "password",
+      "required": false,
+      "title": "Ollama API Key"
+    }
+  ],
+  "tools": [
+    {
+      "name": "ollama-web-fetch",
+      "title": "Web Fetch",
+      "description": "Fetches a single web page by URL and returns its content."
+    },
+    {
+      "name": "ollama-web-search",
+      "title": "Web Search",
+      "description": "Performs a web search for a single query and returns relevant results."
     }
   ],
   "commands": [
