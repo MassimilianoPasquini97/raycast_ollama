@@ -41,7 +41,7 @@ export default async function tool(input: Input): Promise<string> {
     /* Check Response Code */
     if (!response.ok) {
       const errorMsg = await response.text();
-      throw new Error(`<error>HTTP Error, Status: ${response.status}, Message: ${errorMsg} </error>`);
+      throw new Error(`HTTP Error, Status: ${response.status}, Message: ${errorMsg}`);
     }
 
     /* Stringify JSON */
