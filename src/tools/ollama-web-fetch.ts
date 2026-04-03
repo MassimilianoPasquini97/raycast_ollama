@@ -16,7 +16,7 @@ type Input = {
  */
 export default async function tool(input: Input): Promise<string> {
   /* Throw Error if API Key isn't configured */
-  if (key === undefined) throw new Error("Ollama Api Key need to be configured on Raycast Command Extension");
+  if (key === undefined || key === "") throw new Error("Ollama Api Key need to be configured on Raycast Command Extension");
 
   /* Ollama Web Fetch */
   try {
