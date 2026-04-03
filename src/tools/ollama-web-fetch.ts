@@ -20,15 +20,14 @@ export default async function tool(input: Input): Promise<string> {
 
   /* Ollama Web Fetch */
   try {
-
     /* API POST Request */
-    const response = await fetch('https://ollama.com/api/web_fetch', {
-      method: 'POST',
+    const response = await fetch("https://ollama.com/api/web_fetch", {
+      method: "POST",
       body: JSON.stringify(input),
       headers: {
-        'Authorization': `Bearer ${key}`,
-        'Content-Type': 'application/json'
-      }
+        Authorization: `Bearer ${key}`,
+        "Content-Type": "application/json",
+      },
     });
 
     /* Check Response Code */
@@ -40,7 +39,6 @@ export default async function tool(input: Input): Promise<string> {
     /* Stringify JSON */
     const data = await response.json();
     return JSON.stringify(data);
-
   } catch (error) {
     console.error("Error on Ollama Web Fetch Tool", error);
     throw error;
