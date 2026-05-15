@@ -106,10 +106,10 @@ export async function GetModels(): Promise<Map<string, UiModelDetails[]>> {
                 name: tag.name,
                 capabilities: show && show.capabilities,
               };
-            })
-          )
+            }),
+          ),
         );
-    })
+    }),
   );
   return o;
 }

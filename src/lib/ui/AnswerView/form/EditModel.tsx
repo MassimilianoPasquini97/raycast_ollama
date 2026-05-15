@@ -39,7 +39,7 @@ export function EditModel(props: props): React.JSX.Element {
           if (
             props.capabilities.length !==
             model.capabilities.filter(
-              (c) => props.capabilities && props.capabilities.findIndex((rc) => rc === c) !== -1
+              (c) => props.capabilities && props.capabilities.findIndex((rc) => rc === c) !== -1,
             ).length
           )
             return false;
@@ -109,7 +109,7 @@ export function EditModel(props: props): React.JSX.Element {
                 if (
                   props.capabilities.length !==
                   model.capabilities.filter(
-                    (c) => props.capabilities && props.capabilities.findIndex((rc) => rc === c) !== -1
+                    (c) => props.capabilities && props.capabilities.findIndex((rc) => rc === c) !== -1,
                   ).length
                 )
                   return false;

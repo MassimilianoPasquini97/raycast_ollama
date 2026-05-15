@@ -38,7 +38,7 @@ export function ChatView(): React.JSX.Element {
 
   const [Image, SetImage]: [
     RaycastImage[] | undefined,
-    React.Dispatch<React.SetStateAction<RaycastImage[] | undefined>>
+    React.Dispatch<React.SetStateAction<RaycastImage[] | undefined>>,
   ] = React.useState();
 
   // Save Chat To LocalStoarge on Inference Done.
@@ -173,7 +173,7 @@ export function ChatView(): React.JSX.Element {
               shortcut={Shortcut.AttachBrowserTab}
             />
             <Action
-              title="Image From Clipboard"
+              title="Image from Clipboard"
               icon={Icon.Image}
               onAction={async () =>
                 GetImage()

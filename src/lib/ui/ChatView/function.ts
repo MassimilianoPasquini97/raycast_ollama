@@ -31,7 +31,7 @@ export async function ChangeChat(
   i: number,
   setChat: React.Dispatch<React.SetStateAction<RaycastChat | undefined>>,
   setChatModelsAvailable: React.Dispatch<React.SetStateAction<boolean>>,
-  setShowFormModel: React.Dispatch<React.SetStateAction<boolean>>
+  setShowFormModel: React.Dispatch<React.SetStateAction<boolean>>,
 ): Promise<void> {
   const c = await GetSettingsCommandChatByIndex(i).catch(async (e) => {
     await showToast({ style: Toast.Style.Failure, title: "Error", message: e });
@@ -43,7 +43,7 @@ export async function ChangeChat(
     c.models.main.server_name,
     c.models.main.tag,
     c.models.vision?.server_name,
-    c.models.vision?.tag
+    c.models.vision?.tag,
   ).catch(async (e) => {
     await showToast({ style: Toast.Style.Failure, title: "Error", message: e });
     setChatModelsAvailable(false);
@@ -80,7 +80,7 @@ async function VerifyChatModelInstalled(ms: string, mt: string, vs?: string, vt?
 export async function NewChat(
   chat: RaycastChat,
   setChatNameIndex: React.Dispatch<React.SetStateAction<number>>,
-  revalidate: () => Promise<string[]>
+  revalidate: () => Promise<string[]>,
 ): Promise<void> {
   const cn: RaycastChat = {
     name: "New Chat",
@@ -99,7 +99,7 @@ export function ClipboardConversation(chat?: RaycastChat): string {
   let clipboard = "";
   if (chat) {
     chat.messages.map(
-      (value) => (clipboard += `Question:\n${value.messages[0].content}\n\nAnswer:${value.messages[1].content}\n\n`)
+      (value) => (clipboard += `Question:\n${value.messages[0].content}\n\nAnswer:${value.messages[1].content}\n\n`),
     );
   }
   return clipboard;
@@ -116,7 +116,7 @@ function GetMessagesForInference(
   chat: RaycastChat,
   query: string,
   image?: RaycastImage[],
-  context?: PromptContext
+  context?: PromptContext,
 ): OllamaApiChatMessage[] {
   const messages: OllamaApiChatMessage[] = [];
 
@@ -161,7 +161,7 @@ async function InitMcpClient(): Promise<void> {
 async function ToolsCall(
   query: string,
   chat: RaycastChat,
-  image?: RaycastImage[]
+  image?: RaycastImage[],
 ): Promise<[string | undefined, McpToolInfo[] | undefined]> {
   await showToast({ style: Toast.Style.Animated, title: "🔧 Tool Calling..." });
 
@@ -216,7 +216,7 @@ async function Inference(
   context: PromptContext,
   chat: RaycastChat,
   setChat: React.Dispatch<React.SetStateAction<RaycastChat | undefined>>,
-  setLoading: React.Dispatch<React.SetStateAction<boolean>>
+  setLoading: React.Dispatch<React.SetStateAction<boolean>>,
 ): Promise<void> {
   await showToast({ style: Toast.Style.Animated, title: "🧠 Inference..." });
 
@@ -305,7 +305,7 @@ export async function Run(
   image: RaycastImage[] | undefined,
   chat: RaycastChat,
   setChat: React.Dispatch<React.SetStateAction<RaycastChat | undefined>>,
-  setLoading: React.Dispatch<React.SetStateAction<boolean>>
+  setLoading: React.Dispatch<React.SetStateAction<boolean>>,
 ): Promise<void> {
   setLoading(true);
 

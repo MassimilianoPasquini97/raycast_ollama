@@ -52,7 +52,7 @@ export async function convertAnswerToChat(
   images: RaycastImage[] | undefined,
   answer: string,
   answerMeta: OllamaApiGenerateResponse,
-  openCommand = true
+  openCommand = true,
 ): Promise<void> {
   const server = await GetOllamaServerByName(model.server.name);
   const chat: RaycastChat = {
@@ -104,7 +104,7 @@ async function Inference(
   setAnswerMetadata: React.Dispatch<React.SetStateAction<OllamaApiGenerateResponse>>,
   images: string[] | undefined = undefined,
   creativity: Creativity = Creativity.Medium,
-  keep_alive?: string
+  keep_alive?: string,
 ): Promise<void> {
   await showToast({ style: Toast.Style.Animated, title: "🧠 Inference." });
   const body: OllamaApiGenerateRequestBody = {
@@ -148,7 +148,7 @@ export async function Run(
   setAnswer: React.Dispatch<React.SetStateAction<string>>,
   setAnswerMetadata: React.Dispatch<React.SetStateAction<OllamaApiGenerateResponse>>,
   creativity: Creativity = Creativity.Medium,
-  keep_alive?: string
+  keep_alive?: string,
 ): Promise<void> {
   setLoading(true);
 
@@ -178,6 +178,6 @@ export async function Run(
     setAnswerMetadata,
     imgs && imgs[1] ? imgs[1].map((i) => i.base64) : undefined,
     creativity,
-    keep_alive
+    keep_alive,
   );
 }

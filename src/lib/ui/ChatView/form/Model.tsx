@@ -47,7 +47,7 @@ export function FormModel(props: props): React.JSX.Element {
         setValue("serverMain", props.Chat.models.main.server_name);
         const models = (data.get(props.Chat.models.main.server_name) as UiModelDetails[]).filter(
           (model) =>
-            model.capabilities && model.capabilities.findIndex((c) => c === OllamaApiModelCapability.COMPLETION) !== -1
+            model.capabilities && model.capabilities.findIndex((c) => c === OllamaApiModelCapability.COMPLETION) !== -1,
         );
         if (models.filter((model) => model.name === props.Chat?.models.main.tag).length > 0)
           setValue("modelMain", props.Chat.models.main.tag);
@@ -57,7 +57,7 @@ export function FormModel(props: props): React.JSX.Element {
         setValue("serverVision", props.Chat.models.vision.server_name);
         const models = (data.get(props.Chat.models.vision.server_name) as UiModelDetails[]).filter(
           (model) =>
-            model.capabilities && model.capabilities.findIndex((c) => c === OllamaApiModelCapability.VISION) !== -1
+            model.capabilities && model.capabilities.findIndex((c) => c === OllamaApiModelCapability.VISION) !== -1,
         );
         if (models.filter((model) => model.name === props.Chat?.models.vision?.tag).length > 0)
           setValue("modelVision", props.Chat.models.vision.tag);
@@ -67,7 +67,7 @@ export function FormModel(props: props): React.JSX.Element {
         setValue("serverTools", props.Chat.models.tools.server_name);
         const models = (data.get(props.Chat.models.tools.server_name) as UiModelDetails[]).filter(
           (model) =>
-            model.capabilities && model.capabilities.findIndex((c) => c === OllamaApiModelCapability.TOOLS) !== -1
+            model.capabilities && model.capabilities.findIndex((c) => c === OllamaApiModelCapability.TOOLS) !== -1,
         );
         if (models.filter((model) => model.name === props.Chat?.models.tools?.tag).length > 0)
           setValue("modelTools", props.Chat.models.tools.tag);
@@ -80,12 +80,12 @@ export function FormModel(props: props): React.JSX.Element {
   const [CheckboxMainAdvanced, SetCheckboxMainAdvanced]: [boolean, React.Dispatch<React.SetStateAction<boolean>>] =
     React.useState(props.Chat && props.Chat.models.main.keep_alive ? true : false);
   const [CheckboxVision, SetCheckboxVision]: [boolean, React.Dispatch<React.SetStateAction<boolean>>] = React.useState(
-    props.Chat?.models.vision ? true : false
+    props.Chat?.models.vision ? true : false,
   );
   const [CheckboxVisionAdvanced, SetCheckboxVisionAdvanced]: [boolean, React.Dispatch<React.SetStateAction<boolean>>] =
     React.useState(props.Chat?.models.vision && props.Chat.models.vision.keep_alive ? true : false);
   const [CheckboxTools, SetCheckboxTools]: [boolean, React.Dispatch<React.SetStateAction<boolean>>] = React.useState(
-    props.Chat?.models.tools ? true : false
+    props.Chat?.models.tools ? true : false,
   );
   const [CheckboxToolsAdvanced, SetCheckboxToolsAdvanced]: [boolean, React.Dispatch<React.SetStateAction<boolean>>] =
     React.useState(props.Chat?.models.tools && props.Chat.models.tools.keep_alive ? true : false);
@@ -121,8 +121,8 @@ export function FormModel(props: props): React.JSX.Element {
         "mcp_server",
         props.Chat.mcp_server.filter(
           (selectedMcp) =>
-            Object.keys(McpServer.mcpServers).findIndex((availableMcp) => selectedMcp === availableMcp) !== -1
-        )
+            Object.keys(McpServer.mcpServers).findIndex((availableMcp) => selectedMcp === availableMcp) !== -1,
+        ),
       );
   }, [McpServer, isLoadingMcpServer]);
 
@@ -242,7 +242,7 @@ export function FormModel(props: props): React.JSX.Element {
               Model.get(itemProps.serverMain.value)
                 ?.filter(
                   (t) =>
-                    t.capabilities && t.capabilities.findIndex((c) => c === OllamaApiModelCapability.COMPLETION) !== -1
+                    t.capabilities && t.capabilities.findIndex((c) => c === OllamaApiModelCapability.COMPLETION) !== -1,
                 )
                 ?.sort()
                 ?.map((s) => <Form.Dropdown.Item title={s.name} value={s.name} key={s.name} />)}
@@ -280,7 +280,8 @@ export function FormModel(props: props): React.JSX.Element {
             {itemProps.serverVision.value &&
               Model.get(itemProps.serverVision.value)
                 ?.filter(
-                  (t) => t.capabilities && t.capabilities.findIndex((c) => c === OllamaApiModelCapability.VISION) !== -1
+                  (t) =>
+                    t.capabilities && t.capabilities.findIndex((c) => c === OllamaApiModelCapability.VISION) !== -1,
                 )
                 ?.sort()
                 ?.map((s) => <Form.Dropdown.Item title={s.name} value={s.name} key={s.name} />)}
@@ -320,7 +321,7 @@ export function FormModel(props: props): React.JSX.Element {
             {itemProps.serverTools.value &&
               Model.get(itemProps.serverTools.value)
                 ?.filter(
-                  (t) => t.capabilities && t.capabilities.findIndex((c) => c === OllamaApiModelCapability.TOOLS) !== -1
+                  (t) => t.capabilities && t.capabilities.findIndex((c) => c === OllamaApiModelCapability.TOOLS) !== -1,
                 )
                 ?.sort()
                 ?.map((s) => <Form.Dropdown.Item title={s.name} value={s.name} key={s.name} />)}

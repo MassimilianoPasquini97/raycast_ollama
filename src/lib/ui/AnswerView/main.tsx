@@ -47,7 +47,7 @@ export function AnswerView(props: props): React.JSX.Element {
   const [answer, setAnswer]: [string, React.Dispatch<React.SetStateAction<string>>] = React.useState("");
   const [answerMetadata, setAnswerMetadata]: [
     OllamaApiGenerateResponse,
-    React.Dispatch<React.SetStateAction<OllamaApiGenerateResponse>>
+    React.Dispatch<React.SetStateAction<OllamaApiGenerateResponse>>,
   ] = React.useState({} as OllamaApiGenerateResponse);
   const [showAnswerMetadata, setShowAnswerMetadata] = React.useState(false);
 
@@ -63,7 +63,7 @@ export function AnswerView(props: props): React.JSX.Element {
         setAnswer,
         setAnswerMetadata,
         props.creativity,
-        props.keep_alive ? props.keep_alive : Model.keep_alive
+        props.keep_alive ? props.keep_alive : Model.keep_alive,
       ).catch(async (e) => {
         await showToast({ style: Toast.Style.Failure, title: "Error", message: e });
         setLoading(false);

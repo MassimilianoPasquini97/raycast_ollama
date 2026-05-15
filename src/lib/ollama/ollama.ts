@@ -52,12 +52,12 @@ export class Ollama {
   /**
    * Log `Error` on console.
    */
-  private _ErrorLogger(error: Error | Error): void {
+  private _ErrorLogger(error: Error): void {
     if (error instanceof Errors.OllamaServerError) {
       console.error(
         `Error: Route '${error.route}', Code '${error.code}', Message: ${error.message}${
           error.req && ` Req: ${error.req}`
-        }`
+        }`,
       );
     } else {
       console.error(`Error: ${error.message}`);
@@ -79,7 +79,7 @@ export class Ollama {
     code: number,
     message: Types.OllamaErrorResponse,
     req?: RequestInit,
-    model?: string
+    model?: string,
   ): void {
     if (route in [this._RouteApiShow, this._RouteApiGenerate, this._RouteApiChat] && code === 404) {
       throw new Errors.OllamaModelNotInstalled(Errors.OllamaMessageModelNotInstalled.message, model);
@@ -111,9 +111,8 @@ export class Ollama {
       })
       .catch((err: Error) => {
         this._ErrorLogger(err);
-        if (err instanceof TypeError &&
-            err.cause &&
-            (err.cause as any).code === "ECONNREFUSED") throw Errors.OllamaNotInstalledOrRunning;
+        if (err instanceof TypeError && err.cause && (err.cause as NodeJS.ErrnoException).code === "ECONNREFUSED")
+          throw Errors.OllamaNotInstalledOrRunning;
         throw Errors.OllamaVersion;
       });
 
@@ -143,9 +142,8 @@ export class Ollama {
         return output as Types.OllamaApiTagsResponse;
       })
       .catch((err: Error | Errors.OllamaServerError) => {
-        if (err instanceof TypeError &&
-            err.cause &&
-            (err.cause as any).code === "ECONNREFUSED") throw Errors.OllamaNotInstalledOrRunning;
+        if (err instanceof TypeError && err.cause && (err.cause as NodeJS.ErrnoException).code === "ECONNREFUSED")
+          throw Errors.OllamaNotInstalledOrRunning;
         throw err;
       });
 
@@ -182,9 +180,8 @@ export class Ollama {
       })
       .catch((err: Error | Error) => {
         this._ErrorLogger(err);
-        if (err instanceof TypeError &&
-            err.cause &&
-            (err.cause as any).code === "ECONNREFUSED") throw Errors.OllamaNotInstalledOrRunning;
+        if (err instanceof TypeError && err.cause && (err.cause as NodeJS.ErrnoException).code === "ECONNREFUSED")
+          throw Errors.OllamaNotInstalledOrRunning;
         throw err;
       });
 
@@ -522,9 +519,8 @@ export class Ollama {
       })
       .catch((err: Error | Error) => {
         this._ErrorLogger(err);
-        if (err instanceof TypeError &&
-            err.cause &&
-            (err.cause as any).code === "ECONNREFUSED") throw Errors.OllamaNotInstalledOrRunning;
+        if (err instanceof TypeError && err.cause && (err.cause as NodeJS.ErrnoException).code === "ECONNREFUSED")
+          throw Errors.OllamaNotInstalledOrRunning;
         throw err;
       });
   }
@@ -566,6 +562,7 @@ export class Ollama {
         let part = "";
 
         try {
+          // eslint-disable-next-line no-constant-condition
           while (true) {
             const { done, value } = await reader.read();
             if (done) break;
@@ -602,16 +599,15 @@ export class Ollama {
         } finally {
           reader.releaseLock();
         }
-      }
+      };
 
       processStream();
 
       return e;
-    } catch (err: any) {
-      this._ErrorLogger(err);
-      if (err instanceof TypeError &&
-          err.cause &&
-          (err.cause as any).code === "ECONNREFUSED") throw Errors.OllamaNotInstalledOrRunning;
+    } catch (err) {
+      if (err instanceof Error) this._ErrorLogger(err);
+      if (err instanceof TypeError && err.cause && (err.cause as NodeJS.ErrnoException).code === "ECONNREFUSED")
+        throw Errors.OllamaNotInstalledOrRunning;
       throw err;
     }
   }
@@ -627,7 +623,7 @@ export class Ollama {
   private async _OllamaApiStream<T extends { model: string }>(
     route: string,
     body: T,
-    contentExtractor: (json: Types.OllamaApiChatResponse | Types.OllamaErrorResponse | undefined) => string | undefined
+    contentExtractor: (json: Types.OllamaApiChatResponse | Types.OllamaErrorResponse | undefined) => string | undefined,
   ): Promise<EventEmitter> {
     const url = `${this._server}${route}`;
     const req: RequestInit = {
@@ -653,6 +649,7 @@ export class Ollama {
         let part = "";
 
         try {
+          // eslint-disable-next-line no-constant-condition
           while (true) {
             const { done, value } = await reader.read();
             if (done) break;
@@ -688,16 +685,15 @@ export class Ollama {
         } finally {
           reader.releaseLock();
         }
-      }
+      };
 
       processStream();
 
       return e;
-    } catch (err: any) {
-      this._ErrorLogger(err);
-      if (err instanceof TypeError &&
-          err.cause &&
-          (err.cause as any).code === "ECONNREFUSED") throw Errors.OllamaNotInstalledOrRunning;
+    } catch (err) {
+      if (err instanceof Error) this._ErrorLogger(err);
+      if (err instanceof TypeError && err.cause && (err.cause as NodeJS.ErrnoException).code === "ECONNREFUSED")
+        throw Errors.OllamaNotInstalledOrRunning;
       throw err;
     }
   }
@@ -748,7 +744,7 @@ export class Ollama {
    */
   private async _OllamaApiNoStream(
     route: string,
-    body: Types.OllamaApiGenerateRequestBody | Types.OllamaApiChatRequestBody
+    body: Types.OllamaApiGenerateRequestBody | Types.OllamaApiChatRequestBody,
   ): Promise<Types.OllamaApiGenerateResponse | Types.OllamaApiChatResponse> {
     body.stream = false;
     const url = `${this._server}${route}`;
@@ -771,9 +767,8 @@ export class Ollama {
       })
       .catch((err: Error | Error) => {
         this._ErrorLogger(err);
-        if (err instanceof TypeError &&
-            err.cause &&
-            (err.cause as any).code === "ECONNREFUSED") throw Errors.OllamaNotInstalledOrRunning;
+        if (err instanceof TypeError && err.cause && (err.cause as NodeJS.ErrnoException).code === "ECONNREFUSED")
+          throw Errors.OllamaNotInstalledOrRunning;
         throw err;
       });
 
@@ -816,9 +811,8 @@ export class Ollama {
         })
         .catch((err: Error | Error) => {
           this._ErrorLogger(err);
-          if (err instanceof TypeError &&
-              err.cause &&
-              (err.cause as any).code === "ECONNREFUSED") throw Errors.OllamaNotInstalledOrRunning;
+          if (err instanceof TypeError && err.cause && (err.cause as NodeJS.ErrnoException).code === "ECONNREFUSED")
+            throw Errors.OllamaNotInstalledOrRunning;
           throw err;
         });
     }
@@ -855,9 +849,8 @@ export class Ollama {
         })
         .catch((err: Error | Error) => {
           this._ErrorLogger(err);
-          if (err instanceof TypeError &&
-              err.cause &&
-              (err.cause as any).code === "ECONNREFUSED") throw Errors.OllamaNotInstalledOrRunning;
+          if (err instanceof TypeError && err.cause && (err.cause as NodeJS.ErrnoException).code === "ECONNREFUSED")
+            throw Errors.OllamaNotInstalledOrRunning;
           throw err;
         });
     }

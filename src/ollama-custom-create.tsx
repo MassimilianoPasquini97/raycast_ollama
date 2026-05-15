@@ -67,7 +67,7 @@ The following tags are supported:
                 creativity: itemProps.creativity.value,
                 keep_alive: CheckboxAdvanced && itemProps.keep_alive.value,
               }),
-            })
+            }),
           )}`,
         }}
       />
