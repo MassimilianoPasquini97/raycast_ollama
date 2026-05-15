@@ -561,6 +561,9 @@ export class Ollama {
         const decoder = new TextDecoder("utf-8");
         let part = "";
 
+        const THROTTE_MS = 40;
+        let lastEmitTime = Date.now();
+
         try {
           // eslint-disable-next-line no-constant-condition
           while (true) {
@@ -583,7 +586,11 @@ export class Ollama {
                 }
                 if (json && typeof json === "object")
                   if ("total" in json && json.total && "completed" in json && json.completed) {
-                    e.emit("downloading", json.completed / json.total);
+                    const now = Date.now();
+                    if (now - lastEmitTime >= THROTTE_MS) {
+                      e.emit("downloading", json.completed / json.total);
+                      lastEmitTime = now;
+                    }
                   } else if ("status" in json && json.status === "success") {
                     e.emit("done", "Download completed");
                   } else if ("error" in json) {
@@ -648,6 +655,10 @@ export class Ollama {
         const decoder = new TextDecoder("utf-8");
         let part = "";
 
+        const THROTTE_MS = 40;
+        let lastEmitTime = Date.now();
+        let textBuffer = "";
+
         try {
           // eslint-disable-next-line no-constant-condition
           while (true) {
@@ -670,10 +681,18 @@ export class Ollama {
                 }
                 if (json && typeof json === "object")
                   if ("done" in json && json.done) {
+                    if (textBuffer.length > 0) e.emit("data", textBuffer);
                     e.emit("done", json);
                   } else if ("done" in json) {
                     const content = contentExtractor(json);
-                    if (content) e.emit("data", content);
+                    if (content) textBuffer += content;
+
+                    const now = Date.now();
+                    if (now - lastEmitTime >= THROTTE_MS && textBuffer) {
+                      e.emit("data", textBuffer);
+                      textBuffer = "";
+                      lastEmitTime = now;
+                    }
                   } else if ("error" in json && json.error) {
                     e.emit("error", json.error);
                   }
