@@ -15,7 +15,6 @@ import { GetAvailableModel, PromptTokenParser } from "../function";
 import { McpServerConfig, McpToolInfo } from "../../mcp/types";
 import { McpClientMultiServer } from "../../mcp/mcp";
 import { PromptContext } from "./type";
-import "../../polyfill/node-fetch";
 
 const preferences = getPreferenceValues<Preferences>();
 

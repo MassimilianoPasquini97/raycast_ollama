@@ -19,7 +19,6 @@ import {
   ErrorRaycastSelectedTextEmpty,
 } from "./error";
 import fs from "fs";
-import fetch from "node-fetch";
 import { fileTypeFromBuffer } from "file-type";
 import { OllamaApiTagsResponseModel } from "../ollama/types";
 import { UiModelDetails } from "./types";
