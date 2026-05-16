@@ -10,7 +10,7 @@ import {
 } from "../../ollama/types";
 import { AddSettingsCommandChat, GetSettingsCommandChatByIndex } from "../../settings/settings";
 import { RaycastChat } from "../../settings/types";
-import { Preferences, RaycastImage } from "../../types";
+import { RaycastImage } from "../../types";
 import { GetAvailableModel, PromptTokenParser } from "../function";
 import { McpServerConfig, McpToolInfo } from "../../mcp/types";
 import { McpClientMultiServer } from "../../mcp/mcp";

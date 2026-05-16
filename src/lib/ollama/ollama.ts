@@ -630,7 +630,8 @@ export class Ollama {
   private async _OllamaApiStream<T extends { model: string }>(
     route: string,
     body: T,
-    contentExtractor: (json: Types.OllamaApiChatResponse | Types.OllamaErrorResponse | undefined) => string | undefined,
+    contentExtractor: (json: object) => string | undefined,
+    thinkingExtractor: (json: object) => string | undefined,
   ): Promise<EventEmitter> {
     const url = `${this._server}${route}`;
     const req: RequestInit = {
@@ -657,7 +658,8 @@ export class Ollama {
 
         const THROTTE_MS = 40;
         let lastEmitTime = Date.now();
-        let textBuffer = "";
+        let textContentBuffer = "";
+        let textThinkingBuffer = "";
 
         try {
           // eslint-disable-next-line no-constant-condition
@@ -673,24 +675,37 @@ export class Ollama {
 
               for (const j of lines) {
                 if (j.trim() === "") continue;
-                let json: Types.OllamaApiChatResponse | Types.OllamaErrorResponse | undefined;
+
+                let json:
+                  | Types.OllamaApiChatResponse
+                  | Types.OllamaApiGenerateResponse
+                  | Types.OllamaErrorResponse
+                  | undefined;
                 try {
                   json = JSON.parse(j);
                 } catch (err) {
                   console.error(err);
                 }
+
                 if (json && typeof json === "object")
                   if ("done" in json && json.done) {
-                    if (textBuffer.length > 0) e.emit("data", textBuffer);
+                    if (textContentBuffer.length > 0) e.emit("data", textContentBuffer);
                     e.emit("done", json);
                   } else if ("done" in json) {
+                    const thinking = thinkingExtractor(json);
+                    if (thinking) textThinkingBuffer += thinking;
                     const content = contentExtractor(json);
-                    if (content) textBuffer += content;
+                    if (content) textContentBuffer += content;
 
                     const now = Date.now();
-                    if (now - lastEmitTime >= THROTTE_MS && textBuffer) {
-                      e.emit("data", textBuffer);
-                      textBuffer = "";
+                    if (now - lastEmitTime >= THROTTE_MS) {
+                      if (textThinkingBuffer !== "") {
+                        e.emit("thinking", textThinkingBuffer);
+                        textThinkingBuffer = "";
+                      } else if (textContentBuffer !== "") {
+                        e.emit("data", textContentBuffer);
+                        textContentBuffer = "";
+                      }
                       lastEmitTime = now;
                     }
                   } else if ("error" in json && json.error) {
@@ -717,15 +732,38 @@ export class Ollama {
     }
   }
 
+  // Extract 'response' text from OllamaApiGenerateResponse Object
+  private _generateContentExtractor(json: object): string | undefined {
+    if (Types.isOllamaApiGenerateResponse(json)) return json.response;
+  }
+
+  // Extract 'thinking' text from OllamaApiGenerateResponse Object
+  private _generateThinkingExtractor(json: object): string | undefined {
+    if (Types.isOllamaApiGenerateResponse(json)) return json.thinking;
+  }
+
+  // Extract 'response' text from OllamaApiChatResponse Object
+  private _chatContentExtractor(json: object): string | undefined {
+    if (Types.isOllamaApiChatResponse(json)) return json.message?.content;
+  }
+
+  // Extract 'thinking' text from OllamaApiChatResponse Object
+  private _chatThinkingExtractor(json: object): string | undefined {
+    if (Types.isOllamaApiChatResponse(json)) return json.message?.thinking;
+  }
+
   /**
    * Perform text generation with the selected model.
    * @param body - Ollama Generate Body Request.
    * @returns Response from the Ollama API with an EventEmitter with two event: `data` where all generated text is passed on `string` format and `done` when inference is finished returning a `OllamaApiGenerateResponse` object contains all metadata of inference.
    */
   async OllamaApiGenerate(body: Types.OllamaApiGenerateRequestBody): Promise<EventEmitter> {
-    return await this._OllamaApiStream(this._RouteApiGenerate, body, (json) => {
-      if (json && "response" in json && json.response) return json.response as string;
-    });
+    return await this._OllamaApiStream(
+      this._RouteApiGenerate,
+      body,
+      this._generateContentExtractor,
+      this._generateThinkingExtractor,
+    );
   }
 
   /**
@@ -742,9 +780,12 @@ export class Ollama {
    * @returns Response from the Ollama API with an EventEmitter with two event: `data` where all generated text is passed on `string` format and `done` when inference is finished returning a `OllamaApiChatResponse` object contains all metadata of inference.
    */
   async OllamaApiChat(body: Types.OllamaApiChatRequestBody): Promise<EventEmitter> {
-    return await this._OllamaApiStream(this._RouteApiChat, body, (json) => {
-      if (json && "message" in json && json.message) return json.message.content;
-    });
+    return await this._OllamaApiStream(
+      this._RouteApiChat,
+      body,
+      this._chatContentExtractor,
+      this._chatThinkingExtractor,
+    );
   }
 
   /**

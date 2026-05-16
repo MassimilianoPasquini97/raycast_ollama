@@ -1,5 +1,12 @@
 # raycast-ollama Changelog
 
+## [Improvement] - {PR_MERGE_DATE}
+
+- The thinking process is now shown in a separate section.
+- You can now choose the level of thinking effort.
+- Improved rendering performance for all commands.
+- Minor UI changes.
+
 ## [Improvement] - 2026-04-06
 
 - Added AI Extension "Web Search" and "Web Fetch". This feature requires the Ollama Web Search API Key.

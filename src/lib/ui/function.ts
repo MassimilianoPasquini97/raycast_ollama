@@ -10,7 +10,7 @@ import {
 } from "@raycast/api";
 import { Ollama } from "../ollama/ollama";
 import { GetOllamaServerByName, GetOllamaServers } from "../settings/settings";
-import { Preferences, RaycastImage } from "../types";
+import { RaycastImage } from "../types";
 import {
   ErrorRaycastBrowserExtantion,
   ErrorRaycastClipboardTextEmpty,
