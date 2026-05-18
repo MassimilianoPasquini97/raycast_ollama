@@ -234,8 +234,11 @@ async function Inference(
   await showToast({ style: Toast.Style.Animated, title: "💾 Loading..." });
   const ml = chat.messages.length;
   const o = new Ollama(model.server);
-  o.OllamaApiChat(body)
-    .then(async (emiter) => {
+
+  try {
+    const emiter = await o.OllamaApiChat(body);
+
+    const processEmiter = () => {
       // Get Thinking Text
       emiter.on("thinking", async (data: string) => {
         // showToast when thinking process started
@@ -329,9 +332,12 @@ async function Inference(
           }
         });
       });
+    };
+    processEmiter();
 
-      // Get Metadata
-      emiter.on("done", async (data: OllamaApiChatResponse) => {
+    // Get Metadata
+    await new Promise<void>(() => {
+      emiter.once("done", async (data: OllamaApiChatResponse) => {
         await showToast({ style: Toast.Style.Success, title: "👍 Done." });
         setChat((prevState) => {
           if (!prevState) return undefined;
@@ -348,14 +354,15 @@ async function Inference(
           };
 
           setLoading(false);
+          emiter.removeAllListeners();
           return { ...prevState, messages: newMessages };
         });
       });
-    })
-    .catch(async (e: Error) => {
-      await showToast({ style: Toast.Style.Failure, title: "Error:", message: e.message });
-      setLoading(false);
     });
+  } catch (e) {
+    if (e instanceof Error) await showToast({ style: Toast.Style.Failure, title: "Error:", message: e.message });
+    setLoading(false);
+  }
 }
 
 export async function Run(
