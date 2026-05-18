@@ -1,11 +1,12 @@
 # raycast-ollama Changelog
 
-## [Improvement] - {PR_MERGE_DATE}
+## [Improvement and Fix] - {PR_MERGE_DATE}
 
-- The thinking process is now shown in a separate section.
-- You can now choose the level of thinking effort.
-- Improved rendering performance for all commands.
-- Minor UI changes.
+- [Improvement] The thinking process is now shown in a separate section.
+- [Improvement] You can now choose the level of thinking effort.
+- [Improvement] Improved rendering performance for all commands.
+- [Improvement] Minor UI changes.
+- [Fix] Missing Actions on empty Chat
 
 ## [Improvement] - 2026-04-06
 

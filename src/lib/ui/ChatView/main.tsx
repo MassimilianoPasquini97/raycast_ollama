@@ -127,7 +127,7 @@ export function ChatView(): React.JSX.Element {
             />
           )}
           {props.message && <Action.CopyToClipboard title="Copy Conversation" content={ClipboardConversation(Chat)} />}
-          {Chat && (
+          {Chat && Chat.name !== "New Chat" && (
             <Action
               title="New Chat"
               icon={Icon.NewDocument}
@@ -302,7 +302,6 @@ export function ChatView(): React.JSX.Element {
       onSearchTextChange={(t) => {
         if (!IsLoading) SetQuery(t);
       }}
-      actions={!IsLoadingChatNames && <ActionMessage />}
       isShowingDetail={Chat && Chat.messages.length > 0}
       searchBarAccessory={
         !IsLoadingChatNames && ChatNames && !IsLoading ? (
@@ -348,9 +347,9 @@ ${item.messages[1].content}`}
           />
         ))
       ) : ChatModelsAvailable ? (
-        <List.EmptyView icon={Icon.Message} title="Start a Conversation with Ollama" />
+        <List.EmptyView icon={Icon.Message} title="Start a Conversation with Ollama" actions={<ActionMessage />} />
       ) : (
-        <List.EmptyView icon={Icon.Xmark} title="Ollama Server or Selected Model Unavailable." />
+        <List.EmptyView icon={Icon.Xmark} title="Ollama Server or Selected Model Unavailable." actions={<ActionMessage />} />
       )}
     </List>
   );
