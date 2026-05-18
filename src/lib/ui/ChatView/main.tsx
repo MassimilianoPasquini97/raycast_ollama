@@ -349,7 +349,11 @@ ${item.messages[1].content}`}
       ) : ChatModelsAvailable ? (
         <List.EmptyView icon={Icon.Message} title="Start a Conversation with Ollama" actions={<ActionMessage />} />
       ) : (
-        <List.EmptyView icon={Icon.Xmark} title="Ollama Server or Selected Model Unavailable." actions={<ActionMessage />} />
+        <List.EmptyView
+          icon={Icon.Xmark}
+          title="Ollama Server or Selected Model Unavailable."
+          actions={<ActionMessage />}
+        />
       )}
     </List>
   );
