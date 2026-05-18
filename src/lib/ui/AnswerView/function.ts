@@ -34,6 +34,7 @@ export async function GetModel(command?: CommandAnswer, server?: string, model?:
       ollama: new Ollama(s),
     },
     tag: m[0],
+    thinking: settings?.model.main.thinking,
     keep_alive: settings?.model.main.keep_alive,
   };
 }
@@ -50,9 +51,11 @@ export async function convertAnswerToChat(
   model: Types.UiModel,
   query: string | undefined,
   images: RaycastImage[] | undefined,
+  thinking: string | undefined,
   answer: string,
   answerMeta: OllamaApiGenerateResponse,
   openCommand = true,
+  thinkingEffort?: ThinkingEffort,
 ): Promise<void> {
   const server = await GetOllamaServerByName(model.server.name);
   const chat: RaycastChat = {
@@ -63,6 +66,7 @@ export async function convertAnswerToChat(
         server_name: model.server.name,
         tag: model.tag.name,
         keep_alive: model.keep_alive,
+        thinking: thinkingEffort ? thinkingEffort : model.thinking,
       },
     },
     messages: [
@@ -75,6 +79,7 @@ export async function convertAnswerToChat(
           },
           {
             role: OllamaApiChatMessageRole.ASSISTANT,
+            thinking: thinking,
             content: answer,
           },
         ],
@@ -196,6 +201,7 @@ export async function Run(
 
   // Start Inference
   setAnswer("");
+  setThinking("");
   await Inference(
     model,
     prompt,

@@ -1,4 +1,4 @@
-import { getPreferenceValues, LaunchProps } from "@raycast/api";
+import { getPreferenceValues } from "@raycast/api";
 import { OllamaApiModelCapability } from "./lib/ollama/enum";
 import { CommandAnswer } from "./lib/settings/enum";
 import { AnswerView } from "./lib/ui/AnswerView/main";
@@ -7,9 +7,7 @@ import { Creativity } from "./lib/enum";
 const pref = getPreferenceValues<Preferences>();
 if (!pref.ollamaCertificateValidation) process.env["NODE_TLS_REJECT_UNAUTHORIZED"] = "0";
 
-export default function Command(
-  props: LaunchProps<{ arguments: Arguments.OllamaBrowserSummarize }>,
-): React.JSX.Element {
+export default function Command(): React.JSX.Element {
   const c = CommandAnswer.TWEET;
   const p = `Summarize the provided website with the following format:
 """
@@ -33,7 +31,6 @@ Here's the website information:
       command={c}
       prompt={p}
       creativity={Creativity.Low}
-      thinking={props.arguments.thinkingEffort !== "" ? props.arguments.thinkingEffort : undefined}
       capabilities={[OllamaApiModelCapability.COMPLETION]}
     />
   );

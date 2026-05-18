@@ -1,4 +1,4 @@
-import { getPreferenceValues, LaunchProps } from "@raycast/api";
+import { getPreferenceValues } from "@raycast/api";
 import { Creativity } from "./lib/enum";
 import { CommandAnswer } from "./lib/settings/enum";
 import { AnswerView } from "./lib/ui/AnswerView/main";
@@ -7,7 +7,7 @@ import { OllamaApiModelCapability } from "./lib/ollama/enum";
 const pref = getPreferenceValues<Preferences>();
 if (!pref.ollamaCertificateValidation) process.env["NODE_TLS_REJECT_UNAUTHORIZED"] = "0";
 
-export default function Command(props: LaunchProps<{ arguments: Arguments.OllamaTweet }>): React.JSX.Element {
+export default function Command(): React.JSX.Element {
   const c = CommandAnswer.TWEET;
   const p = `You're an expert in the field and have the perfect opportunity to share your ideas and insights with a huge audience!. Rewrite the text as a tweet that is:
 - Casual and upbeat
@@ -33,7 +33,6 @@ Tweet:`;
       command={c}
       prompt={p}
       creativity={Creativity.High}
-      thinking={props.arguments.thinkingEffort !== "" ? props.arguments.thinkingEffort : undefined}
       capabilities={[OllamaApiModelCapability.COMPLETION]}
     />
   );

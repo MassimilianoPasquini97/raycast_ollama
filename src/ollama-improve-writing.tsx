@@ -1,4 +1,4 @@
-import { getPreferenceValues, LaunchProps } from "@raycast/api";
+import { getPreferenceValues } from "@raycast/api";
 import { Creativity } from "./lib/enum";
 import { OllamaApiModelCapability } from "./lib/ollama/enum";
 import { CommandAnswer } from "./lib/settings/enum";
@@ -7,7 +7,7 @@ import { AnswerView } from "./lib/ui/AnswerView/main";
 const pref = getPreferenceValues<Preferences>();
 if (!pref.ollamaCertificateValidation) process.env["NODE_TLS_REJECT_UNAUTHORIZED"] = "0";
 
-export default function Command(props: LaunchProps<{ arguments: Arguments.OllamaImproveWriting }>): React.JSX.Element {
+export default function Command(): React.JSX.Element {
   const c = CommandAnswer.IMPROVE;
   const p = `Act as a spelling corrector, content writer, and text improver/editor. Reply to each message only with the rewritten text
 Stricly follow these rules:
@@ -31,7 +31,6 @@ Improved Text:`;
       command={c}
       prompt={p}
       creativity={Creativity.Low}
-      thinking={props.arguments.thinkingEffort !== "" ? props.arguments.thinkingEffort : undefined}
       capabilities={[OllamaApiModelCapability.COMPLETION]}
     />
   );

@@ -299,3 +299,23 @@ async function GetPromptTokenSelectionText(): Promise<string | undefined> {
   }
   return query;
 }
+
+/**
+ * Check if selected Model has thinking capabilities.
+ *
+ * @param models - Models from all Ollama Server.
+ * @param server - Selected Ollama Server.
+ * @param model - Selected Ollama Model name.
+ * @returns true if model has thinking capabilities.
+ */
+export function isThinkingModel(models?: Map<string, UiModelDetails[]>, server?: string, model?: string): boolean {
+  if (!models || !server || !model) return false;
+
+  const serverModels = models.get(server);
+  if (!serverModels) return false;
+
+  const capabilities = serverModels.find((value) => value.name === model)?.capabilities;
+  if (!capabilities || !capabilities.includes("thinking")) return false;
+
+  return true;
+}

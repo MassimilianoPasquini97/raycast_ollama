@@ -93,429 +93,91 @@
       "title": "Summarize Website",
       "subtitle": "Ollama",
       "description": "Summarize content from current Website.",
-      "mode": "view",
-      "arguments": [
-        {
-          "name": "thinkingEffort",
-          "placeholder": "Thinking Effort",
-          "type": "dropdown",
-          "required": false,
-          "data": [
-            {
-              "title": "Low",
-              "value": "low"
-            },
-            {
-              "title": "Medium",
-              "value": "medium"
-            },
-            {
-              "title": "High",
-              "value": "high"
-            },
-            {
-              "title": "None",
-              "value": ""
-            }
-          ]
-        }
-      ]
+      "mode": "view"
     },
     {
       "name": "ollama-casual",
       "title": "Change Tone to Casual",
       "subtitle": "Ollama",
       "description": "Make selected text more casual",
-      "mode": "view",
-      "arguments": [
-        {
-          "name": "thinkingEffort",
-          "placeholder": "Thinking Effort",
-          "type": "dropdown",
-          "required": false,
-          "data": [
-            {
-              "title": "Low",
-              "value": "low"
-            },
-            {
-              "title": "Medium",
-              "value": "medium"
-            },
-            {
-              "title": "High",
-              "value": "high"
-            },
-            {
-              "title": "None",
-              "value": ""
-            }
-          ]
-        }
-      ]
+      "mode": "view"
     },
     {
       "name": "ollama-code-explain",
       "title": "Explain Code Step by Step",
       "subtitle": "Ollama",
       "description": "Explain the selected code step by step",
-      "mode": "view",
-      "arguments": [
-        {
-          "name": "thinkingEffort",
-          "placeholder": "Thinking Effort",
-          "type": "dropdown",
-          "required": false,
-          "data": [
-            {
-              "title": "Low",
-              "value": "low"
-            },
-            {
-              "title": "Medium",
-              "value": "medium"
-            },
-            {
-              "title": "High",
-              "value": "high"
-            },
-            {
-              "title": "None",
-              "value": ""
-            }
-          ]
-        }
-      ]
+      "mode": "view"
     },
     {
       "name": "ollama-confident",
       "title": "Change Tone to Confident",
       "subtitle": "Ollama",
       "description": "Make selected text more confident",
-      "mode": "view",
-      "arguments": [
-        {
-          "name": "thinkingEffort",
-          "placeholder": "Thinking Effort",
-          "type": "dropdown",
-          "required": false,
-          "data": [
-            {
-              "title": "Low",
-              "value": "low"
-            },
-            {
-              "title": "Medium",
-              "value": "medium"
-            },
-            {
-              "title": "High",
-              "value": "high"
-            },
-            {
-              "title": "None",
-              "value": ""
-            }
-          ]
-        }
-      ]
+      "mode": "view"
     },
     {
       "name": "ollama-explain",
       "title": "Explain This in Simple Terms",
       "subtitle": "Ollama",
       "description": "Explain selected text in simple terms",
-      "mode": "view",
-      "arguments": [
-        {
-          "name": "thinkingEffort",
-          "placeholder": "Thinking Effort",
-          "type": "dropdown",
-          "required": false,
-          "data": [
-            {
-              "title": "Low",
-              "value": "low"
-            },
-            {
-              "title": "Medium",
-              "value": "medium"
-            },
-            {
-              "title": "High",
-              "value": "high"
-            },
-            {
-              "title": "None",
-              "value": ""
-            }
-          ]
-        }
-      ]
+      "mode": "view"
     },
     {
       "name": "ollama-fix-spelling-grammar",
       "title": "Fix Spelling and Grammar",
       "subtitle": "Ollama",
       "description": "Fix selected text from spelling and grammar error",
-      "mode": "view",
-      "arguments": [
-        {
-          "name": "thinkingEffort",
-          "placeholder": "Thinking Effort",
-          "type": "dropdown",
-          "required": false,
-          "data": [
-            {
-              "title": "Low",
-              "value": "low"
-            },
-            {
-              "title": "Medium",
-              "value": "medium"
-            },
-            {
-              "title": "High",
-              "value": "high"
-            },
-            {
-              "title": "None",
-              "value": ""
-            }
-          ]
-        }
-      ]
+      "mode": "view"
     },
     {
       "name": "ollama-friendly",
       "title": "Change Tone to Friendly",
       "subtitle": "Ollama",
       "description": "Make selected text more friendly",
-      "mode": "view",
-      "arguments": [
-        {
-          "name": "thinkingEffort",
-          "placeholder": "Thinking Effort",
-          "type": "dropdown",
-          "required": false,
-          "data": [
-            {
-              "title": "Low",
-              "value": "low"
-            },
-            {
-              "title": "Medium",
-              "value": "medium"
-            },
-            {
-              "title": "High",
-              "value": "high"
-            },
-            {
-              "title": "None",
-              "value": ""
-            }
-          ]
-        }
-      ]
+      "mode": "view"
     },
     {
       "name": "ollama-image-describe",
       "title": "Describe Content of Image",
       "subtitle": "Ollama",
       "description": "Describe content of the image on the clipboard or selected from finder",
-      "mode": "view",
-      "arguments": [
-        {
-          "name": "thinkingEffort",
-          "placeholder": "Thinking Effort",
-          "type": "dropdown",
-          "required": false,
-          "data": [
-            {
-              "title": "Low",
-              "value": "low"
-            },
-            {
-              "title": "Medium",
-              "value": "medium"
-            },
-            {
-              "title": "High",
-              "value": "high"
-            },
-            {
-              "title": "None",
-              "value": ""
-            }
-          ]
-        }
-      ]
+      "mode": "view"
     },
     {
       "name": "ollama-image-to-text",
       "title": "Get Text from Image",
       "subtitle": "Ollama",
       "description": "Get text from image on the clipboard or selected from finder",
-      "mode": "view",
-      "arguments": [
-        {
-          "name": "thinkingEffort",
-          "placeholder": "Thinking Effort",
-          "type": "dropdown",
-          "required": false,
-          "data": [
-            {
-              "title": "Low",
-              "value": "low"
-            },
-            {
-              "title": "Medium",
-              "value": "medium"
-            },
-            {
-              "title": "High",
-              "value": "high"
-            },
-            {
-              "title": "None",
-              "value": ""
-            }
-          ]
-        }
-      ]
+      "mode": "view"
     },
     {
       "name": "ollama-improve-writing",
       "title": "Improve Writing",
       "subtitle": "Ollama",
       "description": "Improve writing of selected text",
-      "mode": "view",
-      "arguments": [
-        {
-          "name": "thinkingEffort",
-          "placeholder": "Thinking Effort",
-          "type": "dropdown",
-          "required": false,
-          "data": [
-            {
-              "title": "Low",
-              "value": "low"
-            },
-            {
-              "title": "Medium",
-              "value": "medium"
-            },
-            {
-              "title": "High",
-              "value": "high"
-            },
-            {
-              "title": "None",
-              "value": ""
-            }
-          ]
-        }
-      ]
+      "mode": "view"
     },
     {
       "name": "ollama-longer",
       "title": "Make Longer",
       "subtitle": "Ollama",
       "description": "Make selected text longer",
-      "mode": "view",
-      "arguments": [
-        {
-          "name": "thinkingEffort",
-          "placeholder": "Thinking Effort",
-          "type": "dropdown",
-          "required": false,
-          "data": [
-            {
-              "title": "Low",
-              "value": "low"
-            },
-            {
-              "title": "Medium",
-              "value": "medium"
-            },
-            {
-              "title": "High",
-              "value": "high"
-            },
-            {
-              "title": "None",
-              "value": ""
-            }
-          ]
-        }
-      ]
+      "mode": "view"
     },
     {
       "name": "ollama-professional",
       "title": "Change Tone to Professional",
       "subtitle": "Ollama",
       "description": "Make selected text more professional",
-      "mode": "view",
-      "arguments": [
-        {
-          "name": "thinkingEffort",
-          "placeholder": "Thinking Effort",
-          "type": "dropdown",
-          "required": false,
-          "data": [
-            {
-              "title": "Low",
-              "value": "low"
-            },
-            {
-              "title": "Medium",
-              "value": "medium"
-            },
-            {
-              "title": "High",
-              "value": "high"
-            },
-            {
-              "title": "None",
-              "value": ""
-            }
-          ]
-        }
-      ]
+      "mode": "view"
     },
     {
       "name": "ollama-shorter",
       "title": "Make Shorter",
       "subtitle": "Ollama",
       "description": "Make selected text shorter",
-      "mode": "view",
-      "arguments": [
-        {
-          "name": "thinkingEffort",
-          "placeholder": "Thinking Effort",
-          "type": "dropdown",
-          "required": false,
-          "data": [
-            {
-              "title": "Low",
-              "value": "low"
-            },
-            {
-              "title": "Medium",
-              "value": "medium"
-            },
-            {
-              "title": "High",
-              "value": "high"
-            },
-            {
-              "title": "None",
-              "value": ""
-            }
-          ]
-        }
-      ]
+      "mode": "view"
     },
     {
       "name": "ollama-translate",
@@ -5195,33 +4857,7 @@
       "title": "Rephrase as Tweet",
       "subtitle": "Ollama",
       "description": "Rephrase selected text as Tweet",
-      "mode": "view",
-      "arguments": [
-        {
-          "name": "thinkingEffort",
-          "placeholder": "Thinking Effort",
-          "type": "dropdown",
-          "required": false,
-          "data": [
-            {
-              "title": "Low",
-              "value": "low"
-            },
-            {
-              "title": "Medium",
-              "value": "medium"
-            },
-            {
-              "title": "High",
-              "value": "high"
-            },
-            {
-              "title": "None",
-              "value": ""
-            }
-          ]
-        }
-      ]
+      "mode": "view"
     },
     {
       "name": "ollama-models",

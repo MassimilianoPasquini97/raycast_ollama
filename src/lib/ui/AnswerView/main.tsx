@@ -66,7 +66,7 @@ export function AnswerView(props: props): React.JSX.Element {
         setAnswer,
         setAnswerMetadata,
         props.creativity,
-        props.thinking,
+        props.thinking ? props.thinking : Model.thinking,
         props.keep_alive ? props.keep_alive : Model.keep_alive,
       ).catch(async (e) => {
         await showToast({ style: Toast.Style.Failure, title: "Error", message: e });
@@ -91,6 +91,7 @@ export function AnswerView(props: props): React.JSX.Element {
         capabilities={props.capabilities}
         server={!IsLoadingModel && Model ? Model.server.name : undefined}
         model={!IsLoadingModel && Model ? Model.tag.name : undefined}
+        thinking={!IsLoadingModel && Model ? Model.thinking : undefined}
         keep_alive={!IsLoadingModel && Model ? Model.keep_alive : undefined}
       />
     );
@@ -121,7 +122,16 @@ export function AnswerView(props: props): React.JSX.Element {
             title="Continue as Chat"
             icon={Icon.SpeechBubble}
             onAction={async () =>
-              await convertAnswerToChat(Model, query.current, images.current, answer, answerMetadata)
+              await convertAnswerToChat(
+                Model,
+                query.current,
+                images.current,
+                thinking,
+                answer,
+                answerMetadata,
+                true,
+                props.thinking,
+              )
             }
             shortcut={Shortcut.New}
           />
