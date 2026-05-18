@@ -11,10 +11,12 @@ import {
   SetSettingsCommandChatByIndex,
 } from "../../../settings/settings";
 import { RaycastChat } from "../../../settings/types";
-import { GetModels } from "../../function";
+import { GetModels, isThinkingModel } from "../../function";
 import { InfoKeepAlive } from "../../info";
 import { UiModelDetails } from "../../types";
-import { ValidationKeepAlive } from "../../valitadion";
+import { ValidationKeepAlive, ValidationThinking } from "../../valitadion";
+import { ThinkingEffort } from "../../../enum";
+import { ThinkingEffort as ThinkingEffortOllama } from "../../../ollama/types";
 
 interface props {
   SetShow: React.Dispatch<React.SetStateAction<boolean>>;
@@ -28,12 +30,15 @@ interface props {
 interface FormData {
   serverMain: string;
   modelMain: string;
+  thinkingMain: string;
   keepAliveMain: string;
   serverVision: string;
   modelVision: string;
+  thinkingVision: string;
   keepAliveVision: string;
   serverTools: string;
   modelTools: string;
+  thinkingTools: string;
   keepAliveTools: string;
   mcp_server: string[];
 }
@@ -49,8 +54,13 @@ export function FormModel(props: props): React.JSX.Element {
           (model) =>
             model.capabilities && model.capabilities.findIndex((c) => c === OllamaApiModelCapability.COMPLETION) !== -1,
         );
-        if (models.filter((model) => model.name === props.Chat?.models.main.tag).length > 0)
+        if (models.filter((model) => model.name === props.Chat?.models.main.tag).length > 0) {
           setValue("modelMain", props.Chat.models.main.tag);
+          setValue(
+            "thinkingMain",
+            props.Chat.models.main.thinking === false ? "false" : (props.Chat.models.main.thinking as string),
+          );
+        }
       }
 
       if (props.Chat.models.vision && data.has(props.Chat.models.vision.server_name)) {
@@ -59,8 +69,13 @@ export function FormModel(props: props): React.JSX.Element {
           (model) =>
             model.capabilities && model.capabilities.findIndex((c) => c === OllamaApiModelCapability.VISION) !== -1,
         );
-        if (models.filter((model) => model.name === props.Chat?.models.vision?.tag).length > 0)
+        if (models.filter((model) => model.name === props.Chat?.models.vision?.tag).length > 0) {
           setValue("modelVision", props.Chat.models.vision.tag);
+          setValue(
+            "thinkingVision",
+            props.Chat.models.vision.thinking === false ? "false" : (props.Chat.models.vision.thinking as string),
+          );
+        }
       }
 
       if (props.Chat.models.tools && data.has(props.Chat.models.tools.server_name)) {
@@ -69,8 +84,13 @@ export function FormModel(props: props): React.JSX.Element {
           (model) =>
             model.capabilities && model.capabilities.findIndex((c) => c === OllamaApiModelCapability.TOOLS) !== -1,
         );
-        if (models.filter((model) => model.name === props.Chat?.models.tools?.tag).length > 0)
+        if (models.filter((model) => model.name === props.Chat?.models.tools?.tag).length > 0) {
           setValue("modelTools", props.Chat.models.tools.tag);
+          setValue(
+            "thinkingTools",
+            props.Chat.models.tools.thinking === false ? "false" : (props.Chat.models.tools.thinking as string),
+          );
+        }
       }
     },
   });
@@ -101,12 +121,15 @@ export function FormModel(props: props): React.JSX.Element {
     validation: {
       serverMain: FormValidation.Required,
       modelMain: FormValidation.Required,
+      thinkingMain: ValidationThinking,
       keepAliveMain: (value) => ValidationKeepAlive(CheckboxMainAdvanced, value),
       serverVision: CheckboxVision ? FormValidation.Required : undefined,
       modelVision: CheckboxVision ? FormValidation.Required : undefined,
+      thinkingVision: CheckboxVision ? ValidationThinking : undefined,
       keepAliveVision: (value) => ValidationKeepAlive(CheckboxVisionAdvanced, value),
       serverTools: CheckboxTools ? FormValidation.Required : undefined,
       modelTools: CheckboxTools ? FormValidation.Required : undefined,
+      thinkingTools: CheckboxTools ? ValidationThinking : undefined,
       keepAliveTools: (value) => ValidationKeepAlive(CheckboxToolsAdvanced, value),
     },
   });
@@ -128,6 +151,7 @@ export function FormModel(props: props): React.JSX.Element {
 
   const InfoServer = "Ollama Server.";
   const InfoModel = "Ollama Model.";
+  const InfoThinking = "Thinking Effort";
   const InfoVisionCheckbox = "Use a different model for vision when you multimodal capabilities is required.";
   const InfoToolsCheckbox = "Use a different model for tools when tool calling is required.";
   const InfoMcpServer =
@@ -153,6 +177,7 @@ export function FormModel(props: props): React.JSX.Element {
         server_name: values.serverMain,
         server: OllamaServer.get(values.serverMain) as OllamaServer,
         tag: values.modelMain,
+        thinking: values.thinkingMain === "false" ? false : (values.thinkingMain as ThinkingEffortOllama),
         keep_alive: CheckboxMainAdvanced ? values.keepAliveMain : undefined,
       };
       if (values.serverVision && values.modelVision) {
@@ -160,6 +185,7 @@ export function FormModel(props: props): React.JSX.Element {
           server_name: values.serverVision,
           server: OllamaServer.get(values.serverVision) as OllamaServer,
           tag: values.modelVision,
+          thinking: values.thinkingVision === "false" ? false : (values.thinkingVision as ThinkingEffortOllama),
           keep_alive: CheckboxVisionAdvanced ? values.keepAliveVision : undefined,
         };
       } else if (!CheckboxVision && chat.models.vision) {
@@ -170,6 +196,7 @@ export function FormModel(props: props): React.JSX.Element {
           server_name: values.serverTools,
           server: OllamaServer.get(values.serverTools) as OllamaServer,
           tag: values.modelTools,
+          thinking: values.thinkingTools === "false" ? false : (values.thinkingTools as ThinkingEffortOllama),
           keep_alive: CheckboxToolsAdvanced ? values.keepAliveTools : undefined,
         };
       } else if (!CheckboxTools && chat.models.tools) {
@@ -196,6 +223,7 @@ export function FormModel(props: props): React.JSX.Element {
             server_name: values.serverMain,
             server: OllamaServer.get(values.serverMain) as OllamaServer,
             tag: values.modelMain,
+            thinking: values.thinkingMain === "false" ? false : (values.thinkingMain as ThinkingEffortOllama),
             keep_alive: CheckboxMainAdvanced ? values.keepAliveMain : undefined,
           },
           vision:
@@ -204,6 +232,7 @@ export function FormModel(props: props): React.JSX.Element {
                   server_name: values.serverVision,
                   server: OllamaServer.get(values.serverVision) as OllamaServer,
                   tag: values.modelVision,
+                  thinking: values.thinkingVision === "false" ? false : (values.thinkingVision as ThinkingEffortOllama),
                   keep_alive: CheckboxVisionAdvanced ? values.keepAliveVision : undefined,
                 }
               : undefined,
@@ -213,6 +242,7 @@ export function FormModel(props: props): React.JSX.Element {
                   server_name: values.serverTools,
                   server: OllamaServer.get(values.serverTools) as OllamaServer,
                   tag: values.modelTools,
+                  thinking: values.thinkingTools === "false" ? false : (values.thinkingTools as ThinkingEffortOllama),
                   keep_alive: CheckboxToolsAdvanced ? values.keepAliveTools : undefined,
                 }
               : undefined,
@@ -246,6 +276,33 @@ export function FormModel(props: props): React.JSX.Element {
                 )
                 ?.sort()
                 ?.map((s) => <Form.Dropdown.Item title={s.name} value={s.name} key={s.name} />)}
+          </Form.Dropdown>
+          <Form.Dropdown title="Thinking Effort" info={InfoThinking} {...itemProps.thinkingMain}>
+            <Form.Dropdown.Item title="None" value={String(ThinkingEffort.None)} key={String(ThinkingEffort.None)} />
+            {isThinkingModel(Model, itemProps.serverMain.value, itemProps.modelMain.value) && (
+              <Form.Dropdown.Item
+                title="Low"
+                icon={Icon.StackedBars1}
+                value={String(ThinkingEffort.Low)}
+                key={String(ThinkingEffort.Low)}
+              />
+            )}
+            {isThinkingModel(Model, itemProps.serverMain.value, itemProps.modelMain.value) && (
+              <Form.Dropdown.Item
+                title="Medium"
+                icon={Icon.StackedBars2}
+                value={String(ThinkingEffort.Medium)}
+                key={String(ThinkingEffort.Medium)}
+              />
+            )}
+            {isThinkingModel(Model, itemProps.serverMain.value, itemProps.modelMain.value) && (
+              <Form.Dropdown.Item
+                title="High"
+                icon={Icon.StackedBars3}
+                value={String(ThinkingEffort.High)}
+                key={String(ThinkingEffort.High)}
+              />
+            )}
           </Form.Dropdown>
           <Form.Checkbox
             id="advancedMain"
@@ -286,6 +343,33 @@ export function FormModel(props: props): React.JSX.Element {
                 ?.sort()
                 ?.map((s) => <Form.Dropdown.Item title={s.name} value={s.name} key={s.name} />)}
           </Form.Dropdown>
+          <Form.Dropdown title="Thinking Effort" info={InfoThinking} {...itemProps.thinkingVision}>
+            <Form.Dropdown.Item title="None" value={String(ThinkingEffort.None)} key={String(ThinkingEffort.None)} />
+            {isThinkingModel(Model, itemProps.serverVision.value, itemProps.modelVision.value) && (
+              <Form.Dropdown.Item
+                title="Low"
+                icon={Icon.StackedBars1}
+                value={String(ThinkingEffort.Low)}
+                key={String(ThinkingEffort.Low)}
+              />
+            )}
+            {isThinkingModel(Model, itemProps.serverVision.value, itemProps.modelVision.value) && (
+              <Form.Dropdown.Item
+                title="Medium"
+                icon={Icon.StackedBars2}
+                value={String(ThinkingEffort.Medium)}
+                key={String(ThinkingEffort.Medium)}
+              />
+            )}
+            {isThinkingModel(Model, itemProps.serverVision.value, itemProps.modelVision.value) && (
+              <Form.Dropdown.Item
+                title="High"
+                icon={Icon.StackedBars3}
+                value={String(ThinkingEffort.High)}
+                key={String(ThinkingEffort.High)}
+              />
+            )}
+          </Form.Dropdown>
           <Form.Checkbox
             id="advancedVision"
             label="Advanced Settings"
@@ -325,6 +409,33 @@ export function FormModel(props: props): React.JSX.Element {
                 )
                 ?.sort()
                 ?.map((s) => <Form.Dropdown.Item title={s.name} value={s.name} key={s.name} />)}
+          </Form.Dropdown>
+          <Form.Dropdown title="Thinking Effort" info={InfoThinking} {...itemProps.thinkingTools}>
+            <Form.Dropdown.Item title="None" value={String(ThinkingEffort.None)} key={String(ThinkingEffort.None)} />
+            {isThinkingModel(Model, itemProps.serverTools.value, itemProps.modelTools.value) && (
+              <Form.Dropdown.Item
+                title="Low"
+                icon={Icon.StackedBars1}
+                value={String(ThinkingEffort.Low)}
+                key={String(ThinkingEffort.Low)}
+              />
+            )}
+            {isThinkingModel(Model, itemProps.serverTools.value, itemProps.modelTools.value) && (
+              <Form.Dropdown.Item
+                title="Medium"
+                icon={Icon.StackedBars2}
+                value={String(ThinkingEffort.Medium)}
+                key={String(ThinkingEffort.Medium)}
+              />
+            )}
+            {isThinkingModel(Model, itemProps.serverTools.value, itemProps.modelTools.value) && (
+              <Form.Dropdown.Item
+                title="High"
+                icon={Icon.StackedBars3}
+                value={String(ThinkingEffort.High)}
+                key={String(ThinkingEffort.High)}
+              />
+            )}
           </Form.Dropdown>
           <Form.Checkbox
             id="advancedTools"

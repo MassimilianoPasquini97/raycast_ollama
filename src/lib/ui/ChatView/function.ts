@@ -163,7 +163,7 @@ async function ToolsCall(
   chat: RaycastChat,
   image?: RaycastImage[],
 ): Promise<[string | undefined, McpToolInfo[] | undefined]> {
-  await showToast({ style: Toast.Style.Animated, title: "🔧 Tool Calling..." });
+  await showToast({ style: Toast.Style.Animated, title: "🧰 Tool Calling..." });
 
   /* Initialize McpClient if undefined. */
   if (McpClient === undefined) {
@@ -218,7 +218,8 @@ async function Inference(
   setChat: React.Dispatch<React.SetStateAction<RaycastChat | undefined>>,
   setLoading: React.Dispatch<React.SetStateAction<boolean>>,
 ): Promise<void> {
-  await showToast({ style: Toast.Style.Animated, title: "🧠 Inference..." });
+  let thinkingStarted = false;
+  let responseStarted = false;
 
   let model = chat.models.main;
   if (image && chat.models.vision) model = chat.models.vision;
@@ -226,14 +227,69 @@ async function Inference(
   const body: OllamaApiChatRequestBody = {
     model: model.tag,
     messages: GetMessagesForInference(chat, query, image, context),
+    think: model.thinking,
     keep_alive: model.keep_alive,
   };
 
+  await showToast({ style: Toast.Style.Animated, title: "💾 Loading..." });
   const ml = chat.messages.length;
   const o = new Ollama(model.server);
   o.OllamaApiChat(body)
     .then(async (emiter) => {
-      emiter.on("data", (data: string) => {
+      // Get Thinking Text
+      emiter.on("thinking", async (data: string) => {
+        // showToast when thinking process started
+        if (!thinkingStarted) {
+          thinkingStarted = false;
+          await showToast({ style: Toast.Style.Animated, title: "🤔 Thinking..." });
+        }
+        setChat((prevState) => {
+          if (!prevState) return undefined;
+
+          if (prevState.messages.length === ml) {
+            return {
+              ...prevState,
+              messages: [
+                ...prevState.messages,
+                {
+                  model: chat.models.main.tag,
+                  created_at: "",
+                  images: image,
+                  messages: [
+                    { role: OllamaApiChatMessageRole.USER, content: query },
+                    { role: OllamaApiChatMessageRole.ASSISTANT, thinking: data, content: "" },
+                  ],
+                  done: false,
+                },
+              ],
+            };
+          } else {
+            const newMessages = [...prevState.messages];
+            const lastMsgIndex = newMessages.length - 1;
+            const lastMsg = { ...newMessages[lastMsgIndex] };
+            const lastMsgMessages = [...lastMsg.messages];
+            const assistantMsg = { ...lastMsgMessages[1] };
+
+            assistantMsg.thinking += data;
+            lastMsgMessages[1] = assistantMsg;
+            lastMsg.messages = lastMsgMessages;
+            newMessages[lastMsgIndex] = lastMsg;
+
+            return {
+              ...prevState,
+              messages: newMessages,
+            };
+          }
+        });
+      });
+
+      // Get Response Text
+      emiter.on("data", async (data: string) => {
+        // showToast when  process started
+        if (!responseStarted) {
+          responseStarted = false;
+          await showToast({ style: Toast.Style.Animated, title: "✍️ Typing..." });
+        }
         setChat((prevState) => {
           if (!prevState) return undefined;
 
@@ -273,8 +329,10 @@ async function Inference(
           }
         });
       });
+
+      // Get Metadata
       emiter.on("done", async (data: OllamaApiChatResponse) => {
-        await showToast({ style: Toast.Style.Success, title: "🧠 Inference Done." });
+        await showToast({ style: Toast.Style.Success, title: "👍 Done." });
         setChat((prevState) => {
           if (!prevState) return undefined;
 

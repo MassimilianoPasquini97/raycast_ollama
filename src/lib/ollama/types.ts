@@ -208,6 +208,7 @@ export interface OllamaApiChatRequestBody {
   tools?: OllamaApiTool[];
   stream?: boolean;
   format?: string;
+  think?: ThinkingEffort;
   keep_alive?: string;
 
   options?: OllamaApiGenerateOptionsRequestBody;

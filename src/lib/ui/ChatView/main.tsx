@@ -328,7 +328,20 @@ export function ChatView(): React.JSX.Element {
             actions={<ActionMessage message={item} />}
             detail={
               <List.Item.Detail
-                markdown={`${item.images ? `${item.images.map((i) => i.html)}\n` : ""}${item.messages[1].content}`}
+                markdown={`${item.images ? `${item.images.map((i) => i.html)}\n` : ""}
+${
+  item.messages[1].thinking
+    ? `
+<details>
+<summary><b>💡 Thinking... (click to expand)</b></summary>
+
+${item.messages[1].thinking}
+
+</details>
+`
+    : ``
+}
+${item.messages[1].content}`}
                 metadata={item.done && ShowAnswerMetadata && <DetailMetadataMessage message={item} />}
               />
             }
