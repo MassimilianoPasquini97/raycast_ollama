@@ -19,15 +19,6 @@ export function ConvertMcpToolsToOllamaTools(tools: McpServerTool[]): OllamaApiT
         },
       },
     };
-    const schemaProps = tool.inputSchema.properties ?? {};
-    Object.keys(schemaProps).forEach((k: string) => {
-      const value = schemaProps[k];
-      tO.function.parameters.properties[k] = {
-        type: value.type,
-        description: value.description || "",
-      };
-      if (value.items?.enum) tO.function.parameters.properties[k].enum = value.items.enum;
-    });
     return tO;
   });
 }
