@@ -1,7 +1,7 @@
 import { Action, ActionPanel, Form, Icon } from "@raycast/api";
 import { useForm } from "@raycast/utils";
 import * as React from "react";
-import { McpServerConfig } from "../../../mcp/types";
+import { McpServerConfig } from "../../types";
 import { GetInitialValueConfig } from "./function";
 
 interface props {

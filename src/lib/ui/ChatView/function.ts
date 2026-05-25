@@ -1,4 +1,4 @@
-import { getPreferenceValues, showToast, Toast } from "@raycast/api";
+import { getPreferenceValues, LocalStorage, showToast, Toast } from "@raycast/api";
 import * as React from "react";
 import { OllamaApiChatMessageRole } from "../../ollama/enum";
 import { Ollama } from "../../ollama/ollama";
@@ -16,6 +16,8 @@ import { GetAvailableModel, PromptTokenParser } from "../function";
 import { GetOllamaApiTools, Tool, ToolResult } from "./tools/main";
 import { ToolsOllama } from "./tools/ollama";
 import { getSystemPrompt } from "./prompt";
+import { McpServerConfig } from "../types";
+import { ToolMcp } from "./tools/mcp";
 
 const preferences = getPreferenceValues<Preferences>();
 
@@ -133,6 +135,43 @@ function GetMessagesForInference(chat: RaycastChat, query: string, image?: Rayca
   });
 
   return messages;
+}
+
+/* Get Mcp Server Tools */
+async function ToolsMcp(mcpServerNames: string[]): Promise<Tool[]> {
+  const tools: Tool[] = [];
+
+  /* Get Configures Mcp Server from LocalStorage */
+  let config: McpServerConfig;
+  try {
+    const configRaw = await LocalStorage.getItem<string>("mcp_server_config");
+    if (!configRaw) return tools;
+    config = JSON.parse(configRaw);
+  } catch (error) {
+    console.error(error);
+    if (error instanceof Error)
+      await showToast({ style: Toast.Style.Failure, title: "Error Loading Mcp Server Config", message: error.message });
+    return tools;
+  }
+
+  /* Get Tools from all Mcp Server */
+  for (const name of mcpServerNames) {
+    /* Get Mcp Server Param */
+    const c = config.mcpServers[name];
+    if (!c) continue;
+
+    /* Get Tools */
+    try {
+      const t = await ToolMcp(config.mcpServers[name]);
+      tools.push(...t);
+    } catch (error) {
+      console.error(error);
+      if (error instanceof Error)
+        await showToast({ style: Toast.Style.Failure, title: `Error on Mcp Server "${name}"`, message: error.message });
+    }
+  }
+
+  return tools;
 }
 
 /**
@@ -414,7 +453,10 @@ export async function Run(
   /* Load Ollama Api Tools if Enabled */
   if (toolsOllamaEnabled) tools.push(...ToolsOllama());
   /* Load Tools from Mcp Server */
-  /* TODO */
+  if (chat.mcp_server?.length) {
+    const t = await ToolsMcp(chat.mcp_server);
+    tools.push(...t);
+  }
 
   /* Start Inference */
   await Inference(query, image, tools, chat, setChat, setLoading);
