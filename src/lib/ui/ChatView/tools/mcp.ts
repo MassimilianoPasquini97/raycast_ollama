@@ -61,29 +61,3 @@ export async function ToolMcp(stdioServerParam: StdioServerParameters): Promise<
 
   return tools;
 }
-
-/* Get Available Tools from Mcp Server Array */
-export async function ToolMcpArray(stdioServerParam: StdioServerParameters[]): Promise<Tool[]> {
-  const tools: Tool[] = [];
-
-  /* Get Tools from Al Mcp Server */
-  const promises: Promise<Tool[]>[] = [];
-  for (const param of stdioServerParam) {
-    promises.push(ToolMcp(param));
-  }
-
-  /* Handle Promises Result */
-  const mcpTools = await Promise.allSettled(promises);
-  for (const tool of mcpTools) {
-    /* Log Error */
-    if (tool.status === "rejected") {
-      console.error(tool.reason);
-      continue;
-    }
-
-    /* Push Tools */
-    tools.push(...tool.value);
-  }
-
-  return tools;
-}
