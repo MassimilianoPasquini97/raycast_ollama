@@ -1,3 +1,5 @@
+[![MseeP.ai Security Assessment Badge](https://mseep.net/pr/massimilianopasquini97-raycast-ollama-badge.png)](https://mseep.ai/app/massimilianopasquini97-raycast-ollama)
+
 <div align="center">
   <picture>
     <img alt="logo" height="128px" src="assets/icon@dark.png">
