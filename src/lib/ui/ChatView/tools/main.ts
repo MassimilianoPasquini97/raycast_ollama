@@ -21,7 +21,7 @@ export function GetOllamaApiTools(tools: Tool[]): OllamaApiTool[] {
         function: {
           name: tools.name,
           description: tools.description,
-          ...tools.parameters,
+          parameters: tools.parameters,
         },
       },
   );
